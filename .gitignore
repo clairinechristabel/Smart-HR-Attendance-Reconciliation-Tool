@@ -1,0 +1,41 @@
+# ═══════════════════════════════════════════════════
+# Smart HR Attendance & Reconciliation Tool
+# ═══════════════════════════════════════════════════
+
+# ─── Build Artifacts ──────────────────────────────
+target/
+*.class
+*.jar
+*.war
+
+# ─── IDE Files ────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+*.swo
+*~
+
+# ─── Maven ────────────────────────────────────────
+.mvn/wrapper/maven-wrapper.jar
+mvnw
+mvnw.cmd
+
+# ─── OS Files ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Logs ─────────────────────────────────────────
+*.log
+logs/
+
+# ─── Environment / Secrets ────────────────────────
+.env
+*.env.local
+application-local.yml
+application-dev.yml
