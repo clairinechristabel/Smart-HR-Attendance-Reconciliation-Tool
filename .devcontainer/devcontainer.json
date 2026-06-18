@@ -1,13 +1,18 @@
 {
   "name": "Smart HR Tools",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "image": "mcr.microsoft.com/devcontainers/java:21",
+  "features": {
+    "ghcr.io/itsmechlark/features/postgresql:1": {
+      "version": "16"
+    }
+  },
+  "containerEnv": {
+    "DB_URL": "jdbc:postgresql://localhost:5432/hr_attendance",
+    "DB_USERNAME": "postgres",
+    "DB_PASSWORD": "password123"
+  },
   "customizations": {
     "vscode": {
-      "settings": {
-        "java.jdt.ls.java.home": "/usr/lib/jvm/msopenjdk-current"
-      },
       "extensions": [
         "vscjava.vscode-java-pack",
         "vscjava.vscode-spring-initializr",
@@ -15,7 +20,8 @@
       ]
     }
   },
-  "postCreateCommand": "mvn clean install -DskipTests",
+  "postCreateCommand": "sudo service postgresql start && sudo -u postgres psql -c \"ALTER USER postgres PASSWORD 'password123';\" && sudo -u postgres createdb hr_attendance 2>/dev/null; mvn clean install -DskipTests",
+  "postStartCommand": "sudo service postgresql start",
   "forwardPorts": [8080, 5432],
   "portsAttributes": {
     "8080": {
@@ -23,7 +29,7 @@
       "onAutoForward": "notify"
     },
     "5432": {
-      "label": "PostgreSQL Database",
+      "label": "PostgreSQL",
       "onAutoForward": "silent"
     }
   }
