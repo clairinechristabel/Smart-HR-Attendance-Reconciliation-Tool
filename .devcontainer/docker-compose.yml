@@ -18,7 +18,7 @@ services:
     # Run the container continuously
     command: /bin/sh -c "while sleep 1000; do :; done"
     volumes:
-      - ..:/workspace:cached
+      - ..:/workspaces:cached
     ports:
       - "8080:8080"
     depends_on:
