@@ -76,7 +76,7 @@ public class ReconciliationController {
      * @return ReconciliationSummary with all discrepancies and statistics
      */
     @PostMapping(value = "/run", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('HR_ADMIN')")
+    // @PreAuthorize("hasRole('HR_ADMIN')")  // Disabled for PoC demo — restore for production
     @Operation(
         summary = "Run reconciliation on an uploaded Excel file",
         description = "Parses the attendance Excel file, cross-references against "

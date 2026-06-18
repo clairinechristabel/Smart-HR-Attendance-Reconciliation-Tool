@@ -44,11 +44,13 @@ public class User {
 
     /** Determines which reconciliation strategy is applied to this user */
     @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     @Column(name = "staff_type", nullable = false)
     private StaffType staffType;
 
     /** RBAC role — controls API access and feature visibility */
     @Enumerated(EnumType.STRING)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private UserRole role;
 

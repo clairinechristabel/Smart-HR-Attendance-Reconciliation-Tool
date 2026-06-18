@@ -54,24 +54,18 @@ public class SecurityConfig {
 
                 // Public endpoints — authentication & API docs
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/api-docs/**").permitAll()
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
 
                 // Data Ingestion — HR_ADMIN only
                 .requestMatchers("/api/v1/ingestion/**")
                     .hasRole("HR_ADMIN")
 
-                // Reconciliation — HR_ADMIN triggers; FINANCE_ADMIN can view/export
-                .requestMatchers(HttpMethod.POST, "/api/v1/reconciliation/run")
-                    .hasRole("HR_ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/reconciliation/discrepancies/*/resolve")
-                    .hasRole("HR_ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/v1/reconciliation/**")
-                    .hasAnyRole("HR_ADMIN", "FINANCE_ADMIN")
+                // Reconciliation — open for PoC demo (restore RBAC for production)
+                .requestMatchers("/api/v1/reconciliation/**").permitAll()
 
-                // User Management — HR_ADMIN only
-                .requestMatchers("/api/v1/users/**")
-                    .hasRole("HR_ADMIN")
+                // User Management — open for PoC demo
+                .requestMatchers("/api/v1/users/**").permitAll()
 
                 // Medical Claims — role-specific access
                 .requestMatchers(HttpMethod.POST, "/api/v1/medical-claims")

@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: clairine.christabel
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: hr_attendance
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  app:
+    # Use Microsoft's standard Dev Container Java 21 image
+    image: mcr.microsoft.com/devcontainers/java:21
+    # Run the container continuously
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    volumes:
+      - ..:/workspace:cached
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    # Required for VS Code / GitHub Codespaces to attach correctly
+    network_mode: service:db
+
+volumes:
+  postgres-data:

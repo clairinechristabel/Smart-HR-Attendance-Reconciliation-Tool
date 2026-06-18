@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard — Smart HR Management</title>
+    <meta name="description" content="Staff attendance dashboard for Smart HR Management employees">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- ══════════ SIDEBAR ══════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">📊</div>
+                <div class="brand-text">
+                    <span class="brand-name">Smart HR</span>
+                    <span class="brand-sub">Management System</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Main</div>
+                <a href="#" class="sidebar-link active">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">📅</span> My Attendance
+                </a>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">📝</span> Leave Requests
+                </a>
+
+                <div class="sidebar-section-label">Account</div>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+                <a href="index.html" class="sidebar-link">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebarAvatar">LC</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Lisa Chan</div>
+                    <div class="user-role" id="sidebarRole">Full-Time · Kitchen Staff</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════ MAIN ══════════ -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">Staff Portal › <span>Dashboard</span></div>
+                    <h1>My Dashboard</h1>
+                </div>
+                <div style="font-size: 13px; color: var(--text-secondary);">
+                    📅 June 2026
+                </div>
+            </div>
+
+            <div class="page-content">
+
+                <!-- ── Stats ─────────────────────────── -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Days Present</div>
+                            <div class="stat-value">14</div>
+                            <span class="stat-change up">↑ On track</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber">⚡</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Late Arrivals</div>
+                            <div class="stat-value">2</div>
+                            <span class="stat-change down">↓ vs last month</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">🏖️</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Leave Taken</div>
+                            <div class="stat-value">1</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">of 14 annual days</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon teal">⏱️</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Avg. Hours / Day</div>
+                            <div class="stat-value">8.2</div>
+                            <span class="stat-change up">↑ Good</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Recent Attendance ──────────────── -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2>📅 Recent Attendance</h2>
+                        <a href="#" class="btn btn-outline" style="font-size: 12px; padding: 6px 14px;">View All</a>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Clock In</th>
+                                        <th>Clock Out</th>
+                                        <th>Hours</th>
+                                        <th>Status</th>
+                                        <th>Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Wed, Jun 18</strong></td>
+                                        <td>08:02 AM</td>
+                                        <td>05:15 PM</td>
+                                        <td>9.2 hrs</td>
+                                        <td><span class="badge green">✓ On Time</span></td>
+                                        <td>Sham Shui Po Kitchen</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Tue, Jun 17</strong></td>
+                                        <td>07:58 AM</td>
+                                        <td>05:05 PM</td>
+                                        <td>9.1 hrs</td>
+                                        <td><span class="badge green">✓ On Time</span></td>
+                                        <td>Sham Shui Po Kitchen</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Mon, Jun 16</strong></td>
+                                        <td>08:32 AM</td>
+                                        <td>05:10 PM</td>
+                                        <td>8.6 hrs</td>
+                                        <td><span class="badge amber">⚠ Late (17 min)</span></td>
+                                        <td>Sham Shui Po Kitchen</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fri, Jun 13</strong></td>
+                                        <td>08:00 AM</td>
+                                        <td>05:00 PM</td>
+                                        <td>9.0 hrs</td>
+                                        <td><span class="badge green">✓ On Time</span></td>
+                                        <td>Sham Shui Po Kitchen</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Thu, Jun 12</strong></td>
+                                        <td>—</td>
+                                        <td>—</td>
+                                        <td>—</td>
+                                        <td><span class="badge blue">🏖️ Annual Leave</span></td>
+                                        <td>—</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Wed, Jun 11</strong></td>
+                                        <td>07:55 AM</td>
+                                        <td>05:08 PM</td>
+                                        <td>9.2 hrs</td>
+                                        <td><span class="badge green">✓ On Time</span></td>
+                                        <td>Sham Shui Po Kitchen</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Tue, Jun 10</strong></td>
+                                        <td>08:25 AM</td>
+                                        <td>05:30 PM</td>
+                                        <td>9.1 hrs</td>
+                                        <td><span class="badge amber">⚠ Late (10 min)</span></td>
+                                        <td>Sham Shui Po Kitchen</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Leave Requests ─────────────────── -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📅 Recent Leave Requests</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>From</th>
+                                        <th>To</th>
+                                        <th>Days</th>
+                                        <th>Status</th>
+                                        <th>Approved By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="badge blue">Annual</span></td>
+                                        <td>Jun 12, 2026</td>
+                                        <td>Jun 12, 2026</td>
+                                        <td>1</td>
+                                        <td><span class="badge green">✓ Approved</span></td>
+                                        <td>David Wong (Supervisor)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge purple">Sick</span></td>
+                                        <td>May 20, 2026</td>
+                                        <td>May 21, 2026</td>
+                                        <td>2</td>
+                                        <td><span class="badge green">✓ Approved</span></td>
+                                        <td>David Wong (Supervisor)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge blue">Annual</span></td>
+                                        <td>Jul 14, 2026</td>
+                                        <td>Jul 18, 2026</td>
+                                        <td>5</td>
+                                        <td><span class="badge amber">⏳ Pending</span></td>
+                                        <td>—</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('sidebarName').textContent = user.fullName;
+                
+                // Initials
+                const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('sidebarAvatar').textContent = initials;
+                
+                // Role formatting
+                let roleStr = '';
+                if (user.role === 'HR_ADMIN') roleStr += 'HR Admin';
+                else if (user.role === 'FINANCE_ADMIN') roleStr += 'Finance Admin';
+                else if (user.role === 'SUPERVISOR') roleStr += 'Supervisor';
+                else roleStr += 'Staff';
+                
+                if (user.staffType === 'PART_TIME') roleStr += ' (Part-Time)';
+                else if (user.staffType === 'VOLUNTEER') roleStr += ' (Volunteer)';
+                else roleStr += ' (Full-Time)';
+                
+                document.getElementById('sidebarRole').textContent = roleStr;
+            }
+        });
+    </script>
+</body>
+</html>

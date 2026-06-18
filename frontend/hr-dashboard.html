@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Dashboard — Smart HR Management</title>
+    <meta name="description" content="HR Admin dashboard for attendance reconciliation at Smart HR Management">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- ══════════ SIDEBAR ══════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">📊</div>
+                <div class="brand-text">
+                    <span class="brand-name">Smart HR</span>
+                    <span class="brand-sub">Management System</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Overview</div>
+                <a href="#" class="sidebar-link active">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+
+                <div class="sidebar-section-label">Workforce</div>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">👥</span> Employees
+                </a>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">📅</span> Attendance Logs
+                </a>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">📝</span> Leave Management
+                </a>
+
+                <div class="sidebar-section-label">Reconciliation</div>
+                <a href="#uploadSection" class="sidebar-link" onclick="document.getElementById('uploadSection').scrollIntoView({behavior:'smooth'})">
+                    <span class="nav-icon">🔍</span> Run Reconciliation
+                </a>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">📋</span> Past Reports
+                </a>
+
+                <div class="sidebar-section-label">Finance</div>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">💰</span> Payroll Export
+                </a>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">🏥</span> Medical Claims
+                </a>
+
+                <div class="sidebar-section-label">System</div>
+                <a href="#" class="sidebar-link">
+                    <span class="nav-icon">⚙️</span> Settings
+                </a>
+                <a href="index.html" class="sidebar-link">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebarAvatar">SA</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Sarah Au</div>
+                    <div class="user-role" id="sidebarRole">HR Administrator</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════ MAIN ══════════ -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">HR Admin › <span>Dashboard</span></div>
+                    <h1>HR Dashboard</h1>
+                </div>
+                <div style="font-size: 13px; color: var(--text-secondary);">
+                    📅 June 2026
+                </div>
+            </div>
+
+            <div class="page-content">
+
+                <!-- ── Overview Stats ────────────────── -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Employees</div>
+                            <div class="stat-value">247</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">142 FT · 68 PT · 37 Vol</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Present Today</div>
+                            <div class="stat-value">218</div>
+                            <span class="stat-change up">↑ 88.3%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber">⚡</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Late Today</div>
+                            <div class="stat-value">12</div>
+                            <span class="stat-change down">↓ 4.9%</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">🚫</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Absent Today</div>
+                            <div class="stat-value">17</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">8 approved · 9 unexcused</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Pending Approvals ─────────────── -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header" style="background: #fff8e1; border-bottom: 1px solid #ffe082;">
+                        <h2>⏳ Pending Access Approvals</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Requested Role</th>
+                                        <th>Registered At</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pendingUsersBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">Loading pending requests...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Staff by Location ─────────────── -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2>📍 Attendance by Location</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Location</th>
+                                        <th>Total Staff</th>
+                                        <th>Present</th>
+                                        <th>Late</th>
+                                        <th>Absent</th>
+                                        <th>Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Sham Shui Po Kitchen</strong></td>
+                                        <td>82</td>
+                                        <td>74</td>
+                                        <td>4</td>
+                                        <td>4</td>
+                                        <td><span class="badge green">95.1%</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Chai Wan Warehouse</strong></td>
+                                        <td>56</td>
+                                        <td>48</td>
+                                        <td>3</td>
+                                        <td>5</td>
+                                        <td><span class="badge green">91.1%</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Kwun Tong Centre</strong></td>
+                                        <td>45</td>
+                                        <td>40</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td><span class="badge green">93.3%</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Tin Shui Wai Hub</strong></td>
+                                        <td>38</td>
+                                        <td>33</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td><span class="badge amber">92.1%</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Yuen Long Kitchen</strong></td>
+                                        <td>26</td>
+                                        <td>23</td>
+                                        <td>1</td>
+                                        <td>2</td>
+                                        <td><span class="badge green">92.3%</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════ RECONCILIATION SECTION ══════════ -->
+                <div id="uploadSection" class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2>🔍 Attendance Reconciliation</h2>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+                            Upload your monthly attendance Excel file (.xlsx) to automatically cross-reference clock-in logs against approved leaves and shift schedules.
+                        </p>
+
+                        <div class="dropzone" id="dropzone">
+                            <div class="dropzone-icon">📤</div>
+                            <div class="dropzone-text">Drop your Excel file here</div>
+                            <div class="dropzone-hint">or <span class="link" id="browseTrigger">browse files</span> &nbsp;·&nbsp; .xlsx only &nbsp;·&nbsp; Max 10 MB</div>
+                        </div>
+
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;">
+
+                        <div class="file-bar" id="fileBar">
+                            <span>📊</span>
+                            <span class="file-name" id="fileName">—</span>
+                            <span class="file-size" id="fileSize">—</span>
+                            <button class="file-remove" id="fileRemove" title="Remove file">✕</button>
+                        </div>
+
+                        <div class="toast" id="toast">
+                            <span id="toastIcon"></span>
+                            <span id="toastMsg"></span>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="btn btn-primary" id="submitBtn" disabled onclick="submitReconciliation()">
+                                <span class="spinner"></span>
+                                <span class="btn-label">🔍 Run Reconciliation</span>
+                                <span class="btn-loading">Processing…</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════ RESULTS ══════════ -->
+                <div class="results-area" id="resultsArea">
+
+                    <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        📊 Reconciliation Results
+                    </h2>
+
+                    <div class="meta-strip" id="metaStrip"></div>
+
+                    <div class="stats-row" id="resultStats"></div>
+
+                    <div class="breakdown-cols" id="breakdownCols"></div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>🔍 Discrepancy Details</h2>
+                            <button class="btn btn-success" style="font-size: 12px; padding: 6px 14px;">
+                                📥 Export Excel
+                            </button>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Employee</th>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Expected</th>
+                                            <th>Actual</th>
+                                            <th>Variance</th>
+                                            <th>Location</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="discrepancyBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Recent Reconciliation Runs ────── -->
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-header">
+                        <h2>📋 Recent Reconciliation Runs</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Run ID</th>
+                                        <th>File</th>
+                                        <th>Period</th>
+                                        <th>Records</th>
+                                        <th>Issues</th>
+                                        <th>Processed By</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">a7c3e1f2…</td>
+                                        <td><strong>attendance_may_2026.xlsx</strong></td>
+                                        <td>May 1 – May 31</td>
+                                        <td>6,174</td>
+                                        <td><span class="badge red">42</span></td>
+                                        <td>Sarah Au</td>
+                                        <td>Jun 2, 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">d4b8a2e9…</td>
+                                        <td><strong>attendance_apr_2026.xlsx</strong></td>
+                                        <td>Apr 1 – Apr 30</td>
+                                        <td>5,832</td>
+                                        <td><span class="badge amber">28</span></td>
+                                        <td>Sarah Au</td>
+                                        <td>May 3, 2026</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">f1e7c5a3…</td>
+                                        <td><strong>attendance_mar_2026.xlsx</strong></td>
+                                        <td>Mar 1 – Mar 31</td>
+                                        <td>6,044</td>
+                                        <td><span class="badge amber">35</span></td>
+                                        <td>Sarah Au</td>
+                                        <td>Apr 2, 2026</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ══════════ APPROVAL MODAL ══════════ -->
+    <div class="modal" id="approvalModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 id="approvalModalTitle">Approve Access</h2>
+                <button class="modal-close" onclick="closeApprovalModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+                    Please assign the correct role, staff type, and primary location for this user.
+                </p>
+                
+                <div class="form-group">
+                    <label>System Role</label>
+                    <select id="assignRole" class="form-input">
+                        <option value="LABORER">Staff / Laborer</option>
+                        <option value="SUPERVISOR">Supervisor</option>
+                        <option value="FINANCE_ADMIN">Finance Admin</option>
+                        <option value="HR_ADMIN">HR Admin</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Staff Type</label>
+                    <select id="assignStaffType" class="form-input">
+                        <option value="FULL_TIME">Full-Time</option>
+                        <option value="PART_TIME">Part-Time</option>
+                        <option value="VOLUNTEER">Volunteer</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Primary Location</label>
+                    <select id="assignLocation" class="form-input">
+                        <option value="">(No Location)</option>
+                        <option value="99999999-0000-0000-0000-000000000001">Sham Shui Po Kitchen</option>
+                        <option value="99999999-0000-0000-0000-000000000002">Chai Wan Warehouse</option>
+                        <option value="99999999-0000-0000-0000-000000000003">Kwun Tong Centre</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" id="btnSubmitApproval" style="width:100%; margin-top:12px;" onclick="submitApproval()">Approve & Grant Access</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         JAVASCRIPT
+         ══════════════════════════════════════════════════════════ -->
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        const RECONCILIATION_URL = `${API_BASE}/api/v1/reconciliation/run`;
+        const DEMO_PROCESSED_BY = '550e8400-e29b-41d4-a716-446655440000';
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const browseTrigger = document.getElementById('browseTrigger');
+        const fileBar = document.getElementById('fileBar');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileRemove = document.getElementById('fileRemove');
+        const submitBtn = document.getElementById('submitBtn');
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastMsg = document.getElementById('toastMsg');
+        const resultsArea = document.getElementById('resultsArea');
+
+        let selectedFile = null;
+
+        // ── Dropzone ──────────────────────────────────────────
+        browseTrigger.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropzone.classList.remove('drag-over');
+            if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+        fileRemove.addEventListener('click', clearFile);
+
+        function handleFile(file) {
+            if (!file.name.match(/\.xlsx?$/i)) { showToast('error', '⚠️', 'Please upload an Excel file (.xlsx)'); return; }
+            if (file.size > 10 * 1024 * 1024) { showToast('error', '⚠️', 'File exceeds 10 MB limit'); return; }
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatBytes(file.size);
+            fileBar.classList.add('visible');
+            dropzone.classList.add('has-file');
+            submitBtn.disabled = false;
+            hideToast();
+        }
+
+        function clearFile() {
+            selectedFile = null; fileInput.value = '';
+            fileBar.classList.remove('visible');
+            dropzone.classList.remove('has-file');
+            submitBtn.disabled = true;
+        }
+
+        function formatBytes(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+            return (b / 1048576).toFixed(2) + ' MB';
+        }
+
+        function showToast(type, icon, msg) {
+            toast.className = `toast visible ${type}`;
+            toastIcon.textContent = icon;
+            toastMsg.textContent = msg;
+        }
+        function hideToast() { toast.className = 'toast'; }
+
+        // ── Submit ────────────────────────────────────────────
+        async function submitReconciliation() {
+            if (!selectedFile) return;
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            hideToast();
+            resultsArea.classList.remove('visible');
+
+            const fd = new FormData();
+            fd.append('file', selectedFile);
+            fd.append('processedBy', DEMO_PROCESSED_BY);
+
+            try {
+                const res = await fetch(RECONCILIATION_URL, { method: 'POST', body: fd });
+                const json = await res.json();
+                if (json.success) {
+                    showToast('success', '✅', `Done! ${json.data.totalDiscrepancies} discrepancies found.`);
+                    renderResults(json.data);
+                } else {
+                    showToast('error', '❌', json.error || 'Reconciliation failed.');
+                }
+            } catch (err) {
+                showToast('error', '❌', `Connection error: ${err.message}`);
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        }
+
+        // ── Render Results ────────────────────────────────────
+        function renderResults(d) {
+            resultsArea.classList.add('visible');
+
+            document.getElementById('metaStrip').innerHTML = `
+                <div class="meta-item"><span class="meta-label">Run ID</span><span class="meta-value">${d.runId ? d.runId.substring(0,8)+'…' : '—'}</span></div>
+                <div class="meta-item"><span class="meta-label">Source File</span><span class="meta-value">${d.sourceFileName || '—'}</span></div>
+                <div class="meta-item"><span class="meta-label">Period</span><span class="meta-value">${d.periodStart || '—'} → ${d.periodEnd || '—'}</span></div>
+                <div class="meta-item"><span class="meta-label">Processed</span><span class="meta-value">${d.processedAt ? new Date(d.processedAt).toLocaleString() : '—'}</span></div>
+            `;
+
+            const matchRate = d.totalRecordsProcessed ? Math.round(((d.totalRecordsProcessed - d.totalDiscrepancies) / d.totalRecordsProcessed) * 100) : 100;
+
+            document.getElementById('resultStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-icon blue">📄</div>
+                    <div class="stat-info"><div class="stat-label">Records Processed</div><div class="stat-value">${d.totalRecordsProcessed ?? 0}</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">⚠️</div>
+                    <div class="stat-info"><div class="stat-label">Discrepancies</div><div class="stat-value">${d.totalDiscrepancies ?? 0}</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amber">❓</div>
+                    <div class="stat-info"><div class="stat-label">Unknown Employees</div><div class="stat-value">${d.unknownEmployeeCount ?? 0}</div></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">✅</div>
+                    <div class="stat-info"><div class="stat-label">Match Rate</div><div class="stat-value">${matchRate}%</div></div>
+                </div>
+            `;
+
+            let bdHtml = '';
+            if (d.discrepanciesByType && Object.keys(d.discrepanciesByType).length) {
+                bdHtml += `<div class="card"><div class="card-header"><h2>📋 By Type</h2></div><div class="card-body">
+                    ${Object.entries(d.discrepanciesByType).map(([t,c]) => `<div class="breakdown-row"><span class="label">${fmtType(t)}</span><span class="count">${c}</span></div>`).join('')}
+                </div></div>`;
+            }
+            if (d.discrepanciesByLocation && Object.keys(d.discrepanciesByLocation).length) {
+                bdHtml += `<div class="card"><div class="card-header"><h2>📍 By Location</h2></div><div class="card-body">
+                    ${Object.entries(d.discrepanciesByLocation).map(([l,c]) => `<div class="breakdown-row"><span class="label">${l}</span><span class="count">${c}</span></div>`).join('')}
+                </div></div>`;
+            }
+            document.getElementById('breakdownCols').innerHTML = bdHtml;
+
+            const tbody = document.getElementById('discrepancyBody');
+            if (!d.discrepancies || !d.discrepancies.length) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--text-muted);">🎉 No discrepancies found!</td></tr>`;
+            } else {
+                tbody.innerHTML = d.discrepancies.map(r => `
+                    <tr>
+                        <td><strong>${r.employeeName||'—'}</strong><br><span style="color:var(--text-muted);font-size:11px;">${r.employeeId||''}</span></td>
+                        <td>${r.date||'—'}</td>
+                        <td>${badge(r.type)}</td>
+                        <td style="font-size:12px;">${fmtTime(r.expectedTime)}</td>
+                        <td style="font-size:12px;">${fmtTime(r.actualTime)}</td>
+                        <td><span style="font-weight:600; color:${r.varianceMinutes>0?'var(--red-500)':'var(--green-500)'}">${r.varianceMinutes ? r.varianceMinutes+' min' : '—'}</span></td>
+                        <td>${r.locationName||'—'}</td>
+                        <td style="max-width:180px; font-size:12px; color:var(--text-secondary);">${r.details||'—'}</td>
+                    </tr>
+                `).join('');
+            }
+
+            resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function fmtType(t) { return t.replace(/_/g,' ').toLowerCase().replace(/^\w/,c=>c.toUpperCase()); }
+
+        function badge(type) {
+            const m = {
+                'UNEXCUSED_ABSENCE': { c:'red', l:'Absence' },
+                'LATE_ARRIVAL': { c:'amber', l:'Late Arrival' },
+                'EARLY_DEPARTURE': { c:'blue', l:'Early Dep.' },
+                'MISSING_CLOCK_OUT': { c:'purple', l:'Missing Out' },
+                'HOURS_MISMATCH': { c:'teal', l:'Hours Mismatch' },
+                'LOCATION_MISMATCH': { c:'amber', l:'Location' },
+            };
+            const i = m[type] || { c:'blue', l:type };
+            return `<span class="badge ${i.c}">${i.l}</span>`;
+        }
+
+        function fmtTime(s) {
+            if (!s) return '—';
+            try { return new Date(s).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}); }
+            catch { return s; }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('sidebarName').textContent = user.fullName;
+                
+                // Initials
+                const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('sidebarAvatar').textContent = initials;
+                
+                // Role formatting
+                let roleStr = '';
+                if (user.role === 'HR_ADMIN') roleStr += 'HR Admin';
+                else if (user.role === 'FINANCE_ADMIN') roleStr += 'Finance Admin';
+                else if (user.role === 'SUPERVISOR') roleStr += 'Supervisor';
+                else roleStr += 'Staff';
+                
+                if (user.staffType === 'PART_TIME') roleStr += ' (Part-Time)';
+                else if (user.staffType === 'VOLUNTEER') roleStr += ' (Volunteer)';
+                else roleStr += ' (Full-Time)';
+                
+                document.getElementById('sidebarRole').textContent = roleStr;
+                
+                // Load pending approvals if HR Admin
+                if (user.role === 'HR_ADMIN') {
+                    loadPendingUsers();
+                }
+            }
+        });
+
+        // ── Modal logic ──────────────────────────────────────────────
+        let currentApprovalUserId = null;
+        let currentApprovalUserName = null;
+
+        function openApprovalModal(userId, name) {
+            currentApprovalUserId = userId;
+            currentApprovalUserName = name;
+            document.getElementById('approvalModalTitle').textContent = `Approve Access: ${name}`;
+            document.getElementById('approvalModal').classList.add('visible');
+        }
+
+        function closeApprovalModal() {
+            document.getElementById('approvalModal').classList.remove('visible');
+            currentApprovalUserId = null;
+            currentApprovalUserName = null;
+        }
+
+        async function submitApproval() {
+            if (!currentApprovalUserId) return;
+            
+            const role = document.getElementById('assignRole').value;
+            const staffType = document.getElementById('assignStaffType').value;
+            const locationId = document.getElementById('assignLocation').value || null;
+            
+            const btn = document.getElementById('btnSubmitApproval');
+            btn.disabled = true;
+            btn.textContent = 'Approving...';
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/auth/approve/${currentApprovalUserId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        role: role,
+                        staffType: staffType,
+                        locationId: locationId
+                    })
+                });
+                
+                const json = await res.json();
+                if (json.success) {
+                    alert(`${currentApprovalUserName} has been approved successfully!`);
+                    closeApprovalModal();
+                    loadPendingUsers(); // Reload table
+                } else {
+                    alert("Approval failed: " + json.message);
+                }
+            } catch (err) {
+                alert("Connection error: " + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Approve & Grant Access';
+            }
+        }
+
+        async function rejectUser(userId, name) {
+            if (!confirm(`Are you absolutely sure you want to REJECT ${name}? This will delete their registration.`)) return;
+            
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/auth/reject/${userId}`, {
+                    method: 'DELETE'
+                });
+                
+                const json = await res.json();
+                if (json.success || res.ok) {
+                    alert(`${name}'s registration has been rejected and deleted.`);
+                    loadPendingUsers(); // Reload table
+                } else {
+                    alert("Reject failed: " + (json.message || res.statusText));
+                }
+            } catch (err) {
+                alert("Connection error: " + err.message);
+            }
+        }
+
+        async function loadPendingUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/api/v1/users/pending`);
+                const pendingUsers = await res.json();
+                
+                const tbody = document.getElementById('pendingUsersBody');
+                if (!pendingUsers || pendingUsers.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">🎉 No pending approvals.</td></tr>`;
+                    return;
+                }
+                
+                tbody.innerHTML = pendingUsers.map(u => `
+                    <tr>
+                        <td><strong>${u.fullName}</strong></td>
+                        <td>${u.email}</td>
+                        <td><span class="badge blue">${u.role}</span></td>
+                        <td style="font-size:12px; color:var(--text-secondary);">${new Date(u.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-success" style="font-size: 11px; padding: 4px 8px;" onclick="openApprovalModal('${u.id}', '${u.fullName}')">Approve</button>
+                            <button class="btn" style="font-size: 11px; padding: 4px 8px; background:var(--red-100); color:var(--red-600); border:1px solid var(--red-200); margin-left:4px;" onclick="rejectUser('${u.id}', '${u.fullName}')">Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load pending users", err);
+            }
+        }
+    </script>
+</body>
+</html>

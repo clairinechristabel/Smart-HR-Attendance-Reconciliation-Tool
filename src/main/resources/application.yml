@@ -8,9 +8,9 @@ spring:
 
   # ─── Database Configuration ───────────────────────────────
   datasource:
-    url: jdbc:postgresql://localhost:5432/smarthr_db
-    username: ${DB_USERNAME:smarthr}
-    password: ${DB_PASSWORD:smarthr_secret}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/hr_attendance}
+    username: ${DB_USERNAME:clairine.christabel}
+    password: ${DB_PASSWORD:password123}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20

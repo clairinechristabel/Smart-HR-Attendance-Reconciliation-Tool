@@ -20,6 +20,7 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmployeeId(String employeeId);
+    Optional<User> findByEmail(String email);
 
     /**
      * Batch-fetch users by employee IDs — used by the Reconciliation Engine
@@ -30,4 +31,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByStaffTypeAndActiveTrue(StaffType staffType);
 
     List<User> findByPrimaryLocationIdAndActiveTrue(UUID locationId);
+
+    List<User> findByActiveFalse();
 }

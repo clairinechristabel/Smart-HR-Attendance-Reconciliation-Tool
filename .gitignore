@@ -39,3 +39,7 @@ logs/
 *.env.local
 application-local.yml
 application-dev.yml
+
+# ─── Python / Temp Files ────────────────────────
+venv/
+~$*.xlsx
