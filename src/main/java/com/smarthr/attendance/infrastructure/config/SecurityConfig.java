@@ -57,6 +57,9 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
 
+                // Static resources (Frontend HTML/CSS/Images)
+                .requestMatchers("/", "/index.html", "/hr-dashboard.html", "/staff-dashboard.html", "/*.css", "/*.png", "/*.js", "/favicon.ico").permitAll()
+
                 // Data Ingestion — HR_ADMIN only
                 .requestMatchers("/api/v1/ingestion/**")
                     .hasRole("HR_ADMIN")
