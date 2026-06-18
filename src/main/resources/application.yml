@@ -2,6 +2,9 @@
 # Smart HR Attendance & Reconciliation Tool — Application Config
 # ══════════════════════════════════════════════════════════════
 
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: smart-hr-attendance
@@ -20,7 +23,7 @@ spring:
   # ─── JPA / Hibernate ─────────────────────────────────────
   jpa:
     hibernate:
-      ddl-auto: validate  # Flyway handles schema; Hibernate only validates
+      ddl-auto: ${DDL_AUTO:validate}  # 'update' on Render, 'validate' locally
     show-sql: false
     properties:
       hibernate:
