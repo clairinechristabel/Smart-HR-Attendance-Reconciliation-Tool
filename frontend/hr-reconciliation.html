@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Automated Reconciliation — Food Angel Admin</title>
     <meta name="description" content="HR Admin tool to reconcile attendance with physical/digital records">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
@@ -13,7 +14,7 @@
         <!-- ══════════ SIDEBAR ══════════ -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">🍽️</div>
+                <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
                 <div class="brand-text">
                     <span class="brand-name">Food Angel</span>
                     <span class="brand-sub">HR Admin</span>
@@ -23,18 +24,18 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">Core</div>
                 <a href="hr-dashboard.html" class="sidebar-link">
-                    <span class="nav-icon">📊</span> Dashboard
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
                 </a>
                 <a href="hr-reconciliation.html" class="sidebar-link active">
-                    <span class="nav-icon">⚡</span> Reconciliation
+                    <span class="nav-icon"><i class="fa-solid fa-bolt"></i></span> Reconciliation
                 </a>
                 <a href="hr-medical-claims.html" class="sidebar-link">
-                    <span class="nav-icon">🏥</span> Medical Claims
+                    <span class="nav-icon"><i class="fa-solid fa-notes-medical"></i></span> Medical Claims
                 </a>
 
                 <div class="sidebar-section-label">Account</div>
                 <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
-                    <span class="nav-icon">🚪</span> Sign Out
+                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
                 </a>
             </nav>
 
@@ -55,7 +56,7 @@
                     <h1>Reconciliation Engine</h1>
                 </div>
                 <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
-                    📅 June 2026
+                    June 2026
                 </div>
             </div>
 
@@ -71,7 +72,7 @@
                     <!-- File Upload Zone -->
                     <div class="dropzone" id="reconDropzone" onclick="document.getElementById('excelFile').click()">
                         <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleFileSelect(event)">
-                        <div class="dropzone-icon">📊</div>
+                        <div class="dropzone-icon"><i class="fa-solid fa-file-excel"></i></div>
                         <div class="dropzone-text">Upload Physical Attendance Data</div>
                         <div class="dropzone-hint">Accepts .xlsx, .xls, or .csv formats from legacy time clocks</div>
                     </div>
@@ -94,7 +95,7 @@
                         <h2>Reconciliation Results</h2>
                         <div style="display: flex; gap: 12px;">
                             <button class="btn btn-outline" onclick="resetRecon()">New Upload</button>
-                            <button class="btn btn-primary" onclick="exportResults()">📥 Export Report</button>
+                            <button class="btn btn-primary" onclick="exportResults()"><i class="fa-solid fa-download" style="margin-right: 4px;"></i> Export Report</button>
                         </div>
                     </div>
 
@@ -119,22 +120,22 @@
 
                     <div class="recon-summary">
                         <div class="flag-card clean">
-                            <div class="fc-icon">✅</div>
+                            <div class="fc-icon"><i class="fa-solid fa-circle-check" style="color: var(--green-500);"></i></div>
                             <div class="fc-value" id="resClean">0</div>
                             <div class="fc-label">Clean Matches</div>
                         </div>
                         <div class="flag-card absent">
-                            <div class="fc-icon">🚨</div>
+                            <div class="fc-icon"><i class="fa-solid fa-triangle-exclamation" style="color: var(--red-500);"></i></div>
                             <div class="fc-value" id="resAbsent">0</div>
                             <div class="fc-label">Unexcused Absences</div>
                         </div>
                         <div class="flag-card late">
-                            <div class="fc-icon">⏰</div>
+                            <div class="fc-icon"><i class="fa-solid fa-clock" style="color: var(--amber-500);"></i></div>
                             <div class="fc-value" id="resLate">0</div>
                             <div class="fc-label">Late / Early Leave</div>
                         </div>
                         <div class="flag-card mismatch">
-                            <div class="fc-icon">⚠️</div>
+                            <div class="fc-icon"><i class="fa-solid fa-circle-exclamation" style="color: var(--blue-500);"></i></div>
                             <div class="fc-value" id="resMismatch">0</div>
                             <div class="fc-label">Missing Check-outs</div>
                         </div>
@@ -196,7 +197,7 @@
 
         function updateDateDisplay() {
             const now = new Date();
-            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right: 6px;"></i>' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
 
         // ── Reconciliation Logic ──
@@ -375,10 +376,10 @@
                 const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 
                 let typeBadge = '';
-                if (d.type === 'UNEXCUSED_ABSENCE') typeBadge = '<span class="badge red">🚨 Absence</span>';
-                else if (d.type === 'LATE_ARRIVAL') typeBadge = '<span class="badge amber">⏰ Late In</span>';
-                else if (d.type === 'MISSING_CHECKOUT') typeBadge = '<span class="badge blue">⚠️ Missed Out</span>';
-                else typeBadge = '<span class="badge purple">🔄 Mismatch</span>';
+                if (d.type === 'UNEXCUSED_ABSENCE') typeBadge = '<span class="badge red"><i class="fa-solid fa-triangle-exclamation"></i> Absence</span>';
+                else if (d.type === 'LATE_ARRIVAL') typeBadge = '<span class="badge amber"><i class="fa-solid fa-clock"></i> Late In</span>';
+                else if (d.type === 'MISSING_CHECKOUT') typeBadge = '<span class="badge blue"><i class="fa-solid fa-circle-exclamation"></i> Missed Out</span>';
+                else typeBadge = '<span class="badge purple"><i class="fa-solid fa-rotate"></i> Mismatch</span>';
 
                 let actionBtn = '';
                 if (d.action === 'Dock Pay') actionBtn = `<button class="btn btn-outline" style="font-size:10px; padding:4px 8px; border-color:var(--amber-300); color:var(--amber-600);">Dock Pay</button>`;
@@ -409,7 +410,7 @@
         }
 
         function exportResults() {
-            showToast('📥 Downloading Reconciliation_Report.xlsx', 'info');
+            showToast('<i class="fa-solid fa-download"></i> Downloading Reconciliation_Report.xlsx', 'info');
         }
 
         function showToast(message, type = 'success') {

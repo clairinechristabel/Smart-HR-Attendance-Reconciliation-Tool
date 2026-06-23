@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Angel — Staff Portal</title>
     <meta name="description" content="Food Angel Staff Attendance & Leave Management System">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
     <style>
         body { background: none; display: flex; flex-direction: column; min-height: 100vh; padding: 0; overflow-x: hidden; }
@@ -34,13 +35,13 @@
     <div class="login-page">
         <div class="login-card">
             <div class="login-logo">
-                <div class="logo-icon">🍽️</div>
+                <div class="logo-icon"><i class="fa-solid fa-utensils"></i></div>
                 <div class="logo-text">
                     <span class="logo-name">Food Angel</span>
                     <span class="logo-sub">HR Attendance & Reconciliation</span>
                 </div>
             </div>
-            <div class="login-title">Welcome Back 👋</div>
+            <div class="login-title">Welcome Back</div>
             <p class="login-subtitle">Sign in to access the HR management portal</p>
             <div class="login-error" id="loginError"></div>
             <div class="form-group">
@@ -53,12 +54,12 @@
             </div>
             <button class="btn btn-success" style="width:100%;margin-top:8px;padding:14px;font-size:15px;" id="loginBtn" onclick="handleLogin()">Sign In</button>
             <div class="credential-hints">
-                <div class="hint-title">🔑 Demo Credentials</div>
-                <div class="hint-row"><span class="hint-role">👤 Staff (FT)</span><span class="hint-cred">lisa.chan@foodangel.hk / 1234</span></div>
-                <div class="hint-row"><span class="hint-role">👤 Staff (PT)</span><span class="hint-cred">amy.cheung@foodangel.hk / 1234</span></div>
-                <div class="hint-row"><span class="hint-role">🙋 Volunteer</span><span class="hint-cred">wing.ho@foodangel.hk / 1234</span></div>
-                <div class="hint-row"><span class="hint-role">👷 Supervisor</span><span class="hint-cred">david.wong@foodangel.hk / 1234</span></div>
-                <div class="hint-row"><span class="hint-role">🛡️ HR Admin</span><span class="hint-cred">admin@foodangel.hk / admin</span></div>
+                <div class="hint-title"><i class="fa-solid fa-key" style="margin-right: 4px;"></i> Demo Credentials</div>
+                <div class="hint-row"><span class="hint-role"><i class="fa-solid fa-user" style="margin-right: 4px;"></i> Staff (FT)</span><span class="hint-cred">lisa.chan@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role"><i class="fa-solid fa-user-clock" style="margin-right: 4px;"></i> Staff (PT)</span><span class="hint-cred">amy.cheung@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role"><i class="fa-solid fa-hand-holding-heart" style="margin-right: 4px;"></i> Volunteer</span><span class="hint-cred">wing.ho@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role"><i class="fa-solid fa-user-tie" style="margin-right: 4px;"></i> Supervisor</span><span class="hint-cred">david.wong@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role"><i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> HR Admin</span><span class="hint-cred">admin@foodangel.hk / admin</span></div>
             </div>
         </div>
     </div>

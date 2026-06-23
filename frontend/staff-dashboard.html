@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — Food Angel Staff Portal</title>
     <meta name="description" content="Staff dashboard with QR check-in/out, daily status, and monthly attendance summary">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
@@ -13,7 +14,7 @@
         <!-- ══════════ SIDEBAR ══════════ -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">🍽️</div>
+                <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
                 <div class="brand-text">
                     <span class="brand-name">Food Angel</span>
                     <span class="brand-sub">Staff Portal</span>
@@ -23,18 +24,18 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">Menu</div>
                 <a href="staff-dashboard.html" class="sidebar-link active">
-                    <span class="nav-icon">📊</span> Dashboard
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
                 </a>
                 <a href="staff-leave.html" class="sidebar-link">
-                    <span class="nav-icon">📝</span> Leave Request
+                    <span class="nav-icon"><i class="fa-solid fa-calendar-alt"></i></span> Leave Request
                 </a>
                 <a href="staff-profile.html" class="sidebar-link">
-                    <span class="nav-icon">👤</span> My Profile
+                    <span class="nav-icon"><i class="fa-solid fa-user"></i></span> My Profile
                 </a>
 
                 <div class="sidebar-section-label">Account</div>
                 <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
-                    <span class="nav-icon">🚪</span> Sign Out
+                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
                 </a>
             </nav>
 
@@ -55,7 +56,7 @@
                     <h1>My Dashboard</h1>
                 </div>
                 <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
-                    📅 June 2026
+                    June 2026
                 </div>
             </div>
 
@@ -67,22 +68,22 @@
                     <div class="timer-display" id="timerDisplay">00:00:00</div>
 
                     <button class="checkin-btn check-in" id="checkinBtn" onclick="startScan()">
-                        📷 Scan QR to Check In
+                        <i class="fa-solid fa-camera" style="margin-right: 6px;"></i> Scan QR to Check In
                     </button>
 
                     <div class="checkin-time" id="checkinInfo" style="display: none;">
-                        ⏰ Checked in at <strong id="checkinTimeStr">—</strong>
+                        <i class="fa-regular fa-clock" style="margin-right: 6px;"></i> Checked in at <strong id="checkinTimeStr">—</strong>
                     </div>
 
                     <div class="today-status not-checked" id="todayStatus">
-                        ⏳ Waiting for check-in
+                        <i class="fa-solid fa-hourglass-start" style="margin-right: 6px;"></i> Waiting for check-in
                     </div>
                 </div>
 
                 <!-- ── MONTHLY STATS ───────────────── -->
                 <div class="stats-row" id="statsRow">
                     <div class="stat-card">
-                        <div class="stat-icon green">📅</div>
+                        <div class="stat-icon green"><i class="fa-solid fa-calendar-check"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Days Worked</div>
                             <div class="stat-value" id="statDaysWorked">0</div>
@@ -90,7 +91,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon amber">⚡</div>
+                        <div class="stat-icon amber"><i class="fa-solid fa-bolt"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Late Arrivals</div>
                             <div class="stat-value" id="statLate">0</div>
@@ -98,7 +99,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon blue">🏖️</div>
+                        <div class="stat-icon blue"><i class="fa-solid fa-plane-departure"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Annual Leave Used</div>
                             <div class="stat-value" id="statAnnual">0</div>
@@ -106,7 +107,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon purple">🏥</div>
+                        <div class="stat-icon purple"><i class="fa-solid fa-notes-medical"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Sick Leave Used</div>
                             <div class="stat-value" id="statMedical">0</div>
@@ -118,7 +119,7 @@
                 <!-- ── RECENT ACTIVITY ─────────────── -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>📋 Recent Activity</h2>
+                        <h2><i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> Recent Activity</h2>
                         <a href="staff-profile.html" class="btn btn-outline" style="font-size: 12px; padding: 6px 14px;">View Full Report</a>
                     </div>
                     <div class="card-body" style="padding: 0;">
@@ -181,7 +182,7 @@
         function updateDateDisplay() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', options);
+            document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right: 6px;"></i>' + now.toLocaleDateString('en-US', options);
         }
 
         // ── Load today's check-in state ──
@@ -211,7 +212,7 @@
 
             section.classList.add('checked-in');
             btn.className = 'checkin-btn check-out';
-            btn.innerHTML = '📷 Scan QR to Check Out';
+            btn.innerHTML = '<i class="fa-solid fa-camera" style="margin-right: 6px;"></i> Scan QR to Check Out';
             info.style.display = 'block';
             document.getElementById('checkinTimeStr').textContent = timeStr;
             label.textContent = 'Working time';
@@ -219,10 +220,10 @@
             const [h] = timeStr.split(':').map(Number);
             if (h >= 9) {
                 status.className = 'today-status late';
-                status.textContent = `⚠️ Late — Checked in at ${timeStr} (after 09:00)`;
+                status.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Late — Checked in at ${timeStr} (after 09:00)`;
             } else {
                 status.className = 'today-status on-time';
-                status.textContent = `✅ On Time — Checked in at ${timeStr}`;
+                status.innerHTML = `<i class="fa-solid fa-circle-check"></i> On Time — Checked in at ${timeStr}`;
             }
 
             startTimer(timeStr);
@@ -246,10 +247,10 @@
             const [h] = record.checkIn.split(':').map(Number);
             if (h >= 9) {
                 status.className = 'today-status late';
-                status.textContent = `⚠️ Late — Checked in at ${record.checkIn}`;
+                status.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Late — Checked in at ${record.checkIn}`;
             } else {
                 status.className = 'today-status on-time';
-                status.textContent = `✅ Completed — ${record.hoursWorked} hours worked`;
+                status.innerHTML = `<i class="fa-solid fa-circle-check"></i> Completed — ${record.hoursWorked} hours worked`;
             }
         }
 
@@ -293,7 +294,7 @@
                 video.srcObject = cameraStream;
 
                 setTimeout(() => {
-                    statusEl.innerHTML = '<div class="pulse" style="background: var(--green-500);"></div> ✅ QR Code detected!';
+                    statusEl.innerHTML = '<div class="pulse" style="background: var(--green-500);"></div> <i class="fa-solid fa-check"></i> QR Code detected!';
 
                     setTimeout(() => {
                         closeScan();
@@ -303,10 +304,10 @@
 
             } catch (err) {
                 console.warn('Camera not available, simulating scan...');
-                statusEl.innerHTML = '<div class="pulse"></div> 📱 Camera unavailable — simulating scan...';
+                statusEl.innerHTML = '<div class="pulse"></div> <i class="fa-solid fa-mobile-screen"></i> Camera unavailable — simulating scan...';
 
                 setTimeout(() => {
-                    statusEl.innerHTML = '<div class="pulse" style="background: var(--green-500);"></div> ✅ QR Code detected!';
+                    statusEl.innerHTML = '<div class="pulse" style="background: var(--green-500);"></div> <i class="fa-solid fa-check"></i> QR Code detected!';
                     setTimeout(() => {
                         closeScan();
                         processCheckInOut();
@@ -350,7 +351,7 @@
                 localStorage.setItem('attendance_records', JSON.stringify(records));
 
                 showCheckedIn(timeStr);
-                showToast('✅ Checked in at ' + timeStr, 'success');
+                showToast('<i class="fa-solid fa-check"></i> Checked in at ' + timeStr, 'success');
 
             } else if (!todayRecord.checkOut) {
                 // CHECK OUT
@@ -363,7 +364,7 @@
 
                 if (timerInterval) clearInterval(timerInterval);
                 showCheckedOut(todayRecord);
-                showToast('🔴 Checked out at ' + timeStr + ' — ' + todayRecord.hoursWorked + ' hours', 'info');
+                showToast('<i class="fa-solid fa-circle-stop"></i> Checked out at ' + timeStr + ' — ' + todayRecord.hoursWorked + ' hours', 'info');
             }
 
             loadMonthlyStats();
@@ -415,7 +416,7 @@
             const tbody = document.getElementById('recentActivityBody');
 
             if (recent.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 32px; color: var(--text-muted);">No attendance records yet. Scan QR to check in! 📷</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 32px; color: var(--text-muted);">No attendance records yet. Scan QR to check in! <i class="fa-solid fa-camera"></i></td></tr>';
                 return;
             }
 
@@ -423,8 +424,8 @@
                 const dateObj = new Date(r.date + 'T00:00:00');
                 const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 const statusBadge = r.status === 'LATE'
-                    ? '<span class="badge amber">⚠ Late</span>'
-                    : '<span class="badge green">✓ On Time</span>';
+                    ? '<span class="badge amber"><i class="fa-solid fa-triangle-exclamation"></i> Late</span>'
+                    : '<span class="badge green"><i class="fa-solid fa-check"></i> On Time</span>';
                 return `
                     <tr>
                         <td><strong>${dateStr}</strong></td>

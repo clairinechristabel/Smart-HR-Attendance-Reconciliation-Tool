@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical Claims Tracker — Food Angel Admin</title>
     <meta name="description" content="Self-insured medical claims tracker and reimbursement management">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
@@ -13,7 +14,7 @@
         <!-- ══════════ SIDEBAR ══════════ -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">🍽️</div>
+                <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
                 <div class="brand-text">
                     <span class="brand-name">Food Angel</span>
                     <span class="brand-sub">HR Admin</span>
@@ -23,18 +24,18 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">Core</div>
                 <a href="hr-dashboard.html" class="sidebar-link">
-                    <span class="nav-icon">📊</span> Dashboard
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
                 </a>
                 <a href="hr-reconciliation.html" class="sidebar-link">
-                    <span class="nav-icon">⚡</span> Reconciliation
+                    <span class="nav-icon"><i class="fa-solid fa-bolt"></i></span> Reconciliation
                 </a>
                 <a href="hr-medical-claims.html" class="sidebar-link active">
-                    <span class="nav-icon">🏥</span> Medical Claims
+                    <span class="nav-icon"><i class="fa-solid fa-notes-medical"></i></span> Medical Claims
                 </a>
 
                 <div class="sidebar-section-label">Account</div>
                 <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
-                    <span class="nav-icon">🚪</span> Sign Out
+                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
                 </a>
             </nav>
 
@@ -55,7 +56,7 @@
                     <h1>Self-Insured Medical Claims Tracker</h1>
                 </div>
                 <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
-                    📅 June 2026
+                    June 2026
                 </div>
             </div>
 
@@ -85,7 +86,7 @@
                     <!-- ── New Claim Form ─────────── -->
                     <div class="card">
                         <div class="card-header">
-                            <h2>➕ Log New Claim</h2>
+                            <h2><i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Log New Claim</h2>
                         </div>
                         <div class="card-body">
                             <div class="form-group">
@@ -128,7 +129,7 @@
                                 <label>Receipt / Invoice</label>
                                 <div class="upload-zone" id="uploadZone" style="padding: 16px;">
                                     <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileUpload(event)">
-                                    <div style="font-size: 20px; margin-bottom: 4px;">🧾</div>
+                                    <div style="font-size: 20px; margin-bottom: 4px;"><i class="fa-solid fa-receipt"></i></div>
                                     <div style="font-size: 12px; font-weight: 600;">Upload Receipt</div>
                                 </div>
                                 <div class="file-preview" id="filePreview" style="display: none; padding: 8px;">
@@ -148,7 +149,7 @@
                     <!-- ── Pending Claims Table ──── -->
                     <div class="card">
                         <div class="card-header">
-                            <h2>⏳ Pending Reimbursements</h2>
+                            <h2><i class="fa-solid fa-hourglass-half" style="margin-right: 8px;"></i> Pending Reimbursements</h2>
                             <span class="badge amber" id="pendingClaimsBadge">0</span>
                         </div>
                         <div class="card-body" style="padding: 0;">
@@ -175,9 +176,9 @@
                 <!-- ── All Claims History ───────── -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>📋 Organization Claims History</h2>
+                        <h2><i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> Organization Claims History</h2>
                         <div class="search-bar" style="margin-bottom: 0; min-width: 250px;">
-                            <span class="search-icon">🔍</span>
+                            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                             <input type="text" id="claimsSearch" placeholder="Search staff name..." onkeyup="loadClaimsHistory()">
                         </div>
                     </div>
@@ -210,7 +211,7 @@
     <div class="modal" id="previewModal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h2>🧾 Receipt Preview</h2>
+                <h2><i class="fa-solid fa-receipt" style="margin-right: 8px;"></i> Receipt Preview</h2>
                 <button class="modal-close" onclick="closePreview()">✕</button>
             </div>
             <div class="modal-body" style="text-align: center;">
@@ -240,7 +241,7 @@
 
         function updateDateDisplay() {
             const now = new Date();
-            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right: 6px;"></i>' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
             // Set default date for form
             document.getElementById('claimDate').value = now.toISOString().split('T')[0];
@@ -298,7 +299,7 @@
                 const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 
                 const receiptLink = c.receiptName 
-                    ? `<a href="#" onclick="showPreview('${c.id}'); return false;" style="font-size: 11px; color: var(--blue-600);">📎 View Receipt</a>`
+                    ? `<a href="#" onclick="showPreview('${c.id}'); return false;" style="font-size: 11px; color: var(--blue-600);"><i class="fa-solid fa-paperclip"></i> View Receipt</a>`
                     : '<span style="color: var(--text-muted); font-size: 11px;">No file</span>';
 
                 return `
@@ -357,9 +358,9 @@
                 const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 
                 let statusBadge = '';
-                if (c.status === 'APPROVED') statusBadge = '<span class="badge green">✓ Reimbursed</span>';
-                else if (c.status === 'REJECTED') statusBadge = '<span class="badge red">✕ Rejected</span>';
-                else statusBadge = '<span class="badge amber">⏳ Pending</span>';
+                if (c.status === 'APPROVED') statusBadge = '<span class="badge green"><i class="fa-solid fa-check"></i> Reimbursed</span>';
+                else if (c.status === 'REJECTED') statusBadge = '<span class="badge red"><i class="fa-solid fa-xmark"></i> Rejected</span>';
+                else statusBadge = '<span class="badge amber"><i class="fa-solid fa-hourglass-half"></i> Pending</span>';
 
                 return `
                     <tr>
@@ -380,7 +381,7 @@
             if (!file) return;
 
             if (file.size > 5 * 1024 * 1024) {
-                showToast('❌ File too large. Max 5MB.', 'error');
+                showToast('<i class="fa-solid fa-circle-xmark"></i> File too large. Max 5MB.', 'error');
                 return;
             }
 
@@ -415,7 +416,7 @@
             const notes = document.getElementById('claimNotes').value.trim();
 
             if (!staffEmail || !date || !amount) {
-                showToast('⚠️ Please fill in all required fields (Staff, Date, Amount).', 'error');
+                showToast('<i class="fa-solid fa-triangle-exclamation"></i> Please fill in all required fields (Staff, Date, Amount).', 'error');
                 return;
             }
 
@@ -448,7 +449,7 @@
 
             loadStats();
             loadClaimsHistory();
-            showToast('✅ Claim logged and approved successfully!', 'success');
+            showToast('<i class="fa-solid fa-check"></i> Claim logged and approved successfully!', 'success');
         }
 
         // ── Preview ──

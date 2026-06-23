@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leave Request — Food Angel Staff Portal</title>
     <meta name="description" content="Submit annual or medical leave requests with doctor's note upload">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
@@ -13,7 +14,7 @@
         <!-- ══════════ SIDEBAR ══════════ -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">🍽️</div>
+                <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
                 <div class="brand-text">
                     <span class="brand-name">Food Angel</span>
                     <span class="brand-sub">Staff Portal</span>
@@ -23,18 +24,18 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">Menu</div>
                 <a href="staff-dashboard.html" class="sidebar-link">
-                    <span class="nav-icon">📊</span> Dashboard
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
                 </a>
                 <a href="staff-leave.html" class="sidebar-link active">
-                    <span class="nav-icon">📝</span> Leave Request
+                    <span class="nav-icon"><i class="fa-solid fa-calendar-alt"></i></span> Leave Request
                 </a>
                 <a href="staff-profile.html" class="sidebar-link">
-                    <span class="nav-icon">👤</span> My Profile
+                    <span class="nav-icon"><i class="fa-solid fa-user"></i></span> My Profile
                 </a>
 
                 <div class="sidebar-section-label">Account</div>
                 <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
-                    <span class="nav-icon">🚪</span> Sign Out
+                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
                 </a>
             </nav>
 
@@ -61,7 +62,7 @@
                 <!-- ── LEAVE BALANCE ──────────── -->
                 <div class="stats-row" style="margin-bottom: 28px;">
                     <div class="stat-card">
-                        <div class="stat-icon green">🌴</div>
+                        <div class="stat-icon green"><i class="fa-solid fa-plane-departure"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Annual Leave</div>
                             <div class="stat-value" id="annualRemain">14</div>
@@ -72,7 +73,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon blue">🏥</div>
+                        <div class="stat-icon blue"><i class="fa-solid fa-notes-medical"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Medical Leave</div>
                             <div class="stat-value" id="medicalRemain">12</div>
@@ -83,7 +84,7 @@
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon amber">⏳</div>
+                        <div class="stat-icon amber"><i class="fa-solid fa-hourglass-half"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Personal Leave</div>
                             <div class="stat-value" id="personalRemain">5</div>
@@ -98,7 +99,7 @@
                 <!-- ── REQUEST FORM ──────────── -->
                 <div class="card" style="margin-bottom: 28px;">
                     <div class="card-header">
-                        <h2>📝 New Leave Request</h2>
+                        <h2><i class="fa-solid fa-calendar-plus" style="margin-right: 8px;"></i> New Leave Request</h2>
                     </div>
                     <div class="card-body">
 
@@ -106,32 +107,32 @@
                         <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">Leave Type</label>
                         <div class="leave-type-options">
                             <div class="leave-type-card" id="typeAnnual" onclick="selectLeaveType('ANNUAL')">
-                                <div class="lt-icon">🌴</div>
+                                <div class="lt-icon"><i class="fa-solid fa-plane-departure"></i></div>
                                 <div class="lt-name">Annual Leave</div>
                                 <div class="lt-balance" id="annualCardBalance">14 days remaining</div>
                             </div>
                             <div class="leave-type-card" id="typeSick" onclick="selectLeaveType('SICK')">
-                                <div class="lt-icon">🏥</div>
+                                <div class="lt-icon"><i class="fa-solid fa-notes-medical"></i></div>
                                 <div class="lt-name">Sick Leave</div>
                                 <div class="lt-balance" id="medicalCardBalance">12 days remaining</div>
                             </div>
                             <div class="leave-type-card" id="typePersonal" onclick="selectLeaveType('PERSONAL')">
-                                <div class="lt-icon">⏳</div>
+                                <div class="lt-icon"><i class="fa-solid fa-hourglass-half"></i></div>
                                 <div class="lt-name">Personal Leave</div>
                                 <div class="lt-balance" id="personalCardBalance">5 days remaining</div>
                             </div>
                             <div class="leave-type-card" id="typeMaternity" onclick="selectLeaveType('MATERNITY')">
-                                <div class="lt-icon">👶</div>
+                                <div class="lt-icon"><i class="fa-solid fa-baby"></i></div>
                                 <div class="lt-name">Maternity / Paternity</div>
                                 <div class="lt-balance">As required</div>
                             </div>
                             <div class="leave-type-card" id="typeCompassionate" onclick="selectLeaveType('COMPASSIONATE')">
-                                <div class="lt-icon">🕊️</div>
+                                <div class="lt-icon"><i class="fa-solid fa-dove"></i></div>
                                 <div class="lt-name">Compassionate</div>
                                 <div class="lt-balance">Up to 3 days/event</div>
                             </div>
                             <div class="leave-type-card" id="typeUnpaid" onclick="selectLeaveType('UNPAID')">
-                                <div class="lt-icon">🚫</div>
+                                <div class="lt-icon"><i class="fa-solid fa-ban"></i></div>
                                 <div class="lt-name">Unpaid Leave</div>
                                 <div class="lt-balance">Unlimited</div>
                             </div>
@@ -150,7 +151,7 @@
                         </div>
 
                         <div id="daysSummary" style="display: none; font-size: 14px; font-weight: 600; color: var(--green-600); margin-bottom: 16px; padding: 10px 16px; background: var(--green-50); border-radius: var(--radius-md);">
-                            📅 Duration: <span id="daysCount">0</span> day(s)
+                            <i class="fa-regular fa-calendar" style="margin-right: 6px;"></i> Duration: <span id="daysCount">0</span> day(s)
                         </div>
 
                         <!-- Reason -->
@@ -162,10 +163,10 @@
                         <!-- Doctor's Note Upload (for Sick and Maternity) -->
                         <div id="uploadSection" style="display: none;">
                             <div class="form-group">
-                                <label>📎 Supporting Document (Medical Certificate / Proof)</label>
+                                <label><i class="fa-solid fa-paperclip" style="margin-right: 6px;"></i> Supporting Document (Medical Certificate / Proof)</label>
                                 <div class="upload-zone" id="uploadZone">
                                     <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileUpload(event)">
-                                    <div class="upload-icon">📄</div>
+                                    <div class="upload-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
                                     <div class="upload-text">Click or drag to upload</div>
                                     <div class="upload-hint">JPG, PNG, or PDF (max 5MB)</div>
                                 </div>
@@ -181,7 +182,7 @@
                         </div>
 
                         <button class="btn btn-success" style="width: 100%; padding: 14px; font-size: 15px; margin-top: 8px;" id="submitBtn" onclick="submitLeave()">
-                            📨 Submit Leave Request
+                            <i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i> Submit Leave Request
                         </button>
                     </div>
                 </div>
@@ -189,7 +190,7 @@
                 <!-- ── LEAVE HISTORY ──────────── -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>📋 My Leave History</h2>
+                        <h2><i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> My Leave History</h2>
                     </div>
                     <div class="card-body" style="padding: 0;">
                         <div class="table-wrapper">
@@ -220,7 +221,7 @@
     <div class="modal" id="previewModal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h2>📎 Attachment Preview</h2>
+                <h2><i class="fa-solid fa-paperclip" style="margin-right: 8px;"></i> Attachment Preview</h2>
                 <button class="modal-close" onclick="closePreview()">✕</button>
             </div>
             <div class="modal-body" style="text-align: center;">
@@ -241,12 +242,12 @@
 
         // ── Constants ──
         const LEAVE_TYPES = {
-            'ANNUAL': { icon: '🌴', name: 'Annual Leave' },
-            'SICK': { icon: '🏥', name: 'Sick Leave' },
-            'PERSONAL': { icon: '⏳', name: 'Personal Leave' },
-            'MATERNITY': { icon: '👶', name: 'Maternity/Paternity' },
-            'COMPASSIONATE': { icon: '🕊️', name: 'Compassionate' },
-            'UNPAID': { icon: '🚫', name: 'Unpaid Leave' }
+            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual Leave' },
+            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Sick Leave' },
+            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal Leave' },
+            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity/Paternity' },
+            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate' },
+            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'Unpaid Leave' }
         };
 
         // ── Sidebar ──
@@ -349,7 +350,7 @@
             if (!file) return;
 
             if (file.size > 5 * 1024 * 1024) {
-                showToast('❌ File too large. Max 5MB.', 'error');
+                showToast('<i class="fa-solid fa-circle-xmark"></i> File too large. Max 5MB.', 'error');
                 return;
             }
 
@@ -390,7 +391,7 @@
         // ── Submit ──
         function submitLeave() {
             if (!selectedType) {
-                showToast('⚠️ Please select a leave type.', 'error');
+                showToast('<i class="fa-solid fa-triangle-exclamation"></i> Please select a leave type.', 'error');
                 return;
             }
 
@@ -398,12 +399,12 @@
             const endDate = document.getElementById('leaveEnd').value;
 
             if (!startDate || !endDate) {
-                showToast('⚠️ Please select start and end dates.', 'error');
+                showToast('<i class="fa-solid fa-triangle-exclamation"></i> Please select start and end dates.', 'error');
                 return;
             }
 
             if (new Date(endDate) < new Date(startDate)) {
-                showToast('⚠️ End date must be after start date.', 'error');
+                showToast('<i class="fa-solid fa-triangle-exclamation"></i> End date must be after start date.', 'error');
                 return;
             }
 
@@ -418,13 +419,13 @@
             }
 
             if (days === 0) {
-                showToast('⚠️ Selected dates fall on weekends.', 'error');
+                showToast('<i class="fa-solid fa-triangle-exclamation"></i> Selected dates fall on weekends.', 'error');
                 return;
             }
 
             // Check if file upload is required for sick leave
             if (selectedType === 'SICK' && days > 2 && !uploadedFile) {
-                showToast('⚠️ Medical certificate is required for sick leaves > 2 days.', 'error');
+                showToast('<i class="fa-solid fa-triangle-exclamation"></i> Medical certificate is required for sick leaves > 2 days.', 'error');
                 return;
             }
 
@@ -466,7 +467,7 @@
             // Refresh
             loadLeaveBalance();
             loadLeaveHistory();
-            showToast('✅ Leave request submitted! Waiting for supervisor approval.', 'success');
+            showToast('<i class="fa-solid fa-check"></i> Leave request submitted! Waiting for supervisor approval.', 'success');
         }
 
         // ── Leave History Table ──
@@ -485,8 +486,7 @@
 
             tbody.innerHTML = myLeaves.map(l => {
                 const submitted = new Date(l.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                
-                const typeInfo = LEAVE_TYPES[l.type] || { icon: '📄', name: l.type };
+                const typeInfo = LEAVE_TYPES[l.type] || { icon: '<i class="fa-solid fa-file"></i>', name: l.type };
 
                 const startStr = new Date(l.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const endStr = new Date(l.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -494,26 +494,26 @@
 
                 let statusBadge = '';
                 if (l.status === 'APPROVED') {
-                    statusBadge = '<span class="badge green">✓ Approved</span>';
+                    statusBadge = '<span class="badge green"><i class="fa-solid fa-check"></i> Approved</span>';
                 } else if (l.status === 'REJECTED') {
-                    statusBadge = '<span class="badge red">✕ Rejected</span>';
+                    statusBadge = '<span class="badge red"><i class="fa-solid fa-xmark"></i> Rejected</span>';
                 } else if (l.status === 'SUPERVISOR_APPROVED') {
-                    statusBadge = '<span class="badge blue">⏳ HR Review</span>';
+                    statusBadge = '<span class="badge blue"><i class="fa-solid fa-hourglass-half"></i> HR Review</span>';
                 } else {
-                    statusBadge = '<span class="badge amber">⏳ L1 Pending</span>';
+                    statusBadge = '<span class="badge amber"><i class="fa-solid fa-hourglass-half"></i> L1 Pending</span>';
                 }
 
                 // Add approval chain visual to status badge cell
                 const chainVisual = `
                     <div style="margin-top: 6px; font-size: 10px; display: flex; align-items: center; gap: 4px; color: var(--text-muted);">
-                        <span style="color: ${l.supervisorApproval === 'APPROVED' ? 'var(--green-600)' : (l.supervisorApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L1: ${l.supervisorApproval === 'APPROVED' ? '✓' : (l.supervisorApproval === 'REJECTED' ? '✕' : '⏳')}</span>
+                        <span style="color: ${l.supervisorApproval === 'APPROVED' ? 'var(--green-600)' : (l.supervisorApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L1: ${l.supervisorApproval === 'APPROVED' ? '<i class="fa-solid fa-check"></i>' : (l.supervisorApproval === 'REJECTED' ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-hourglass-half"></i>')}</span>
                         <span>→</span>
-                        <span style="color: ${l.hrApproval === 'APPROVED' ? 'var(--green-600)' : (l.hrApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L2: ${l.hrApproval === 'APPROVED' ? '✓' : (l.hrApproval === 'REJECTED' ? '✕' : (l.hrApproval === 'N/A' ? 'N/A' : '⏳'))}</span>
+                        <span style="color: ${l.hrApproval === 'APPROVED' ? 'var(--green-600)' : (l.hrApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L2: ${l.hrApproval === 'APPROVED' ? '<i class="fa-solid fa-check"></i>' : (l.hrApproval === 'REJECTED' ? '<i class="fa-solid fa-xmark"></i>' : (l.hrApproval === 'N/A' ? 'N/A' : '<i class="fa-solid fa-hourglass-half"></i>'))}</span>
                     </div>
                 `;
 
                 const attachmentCell = l.attachmentName
-                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 12px; color: var(--blue-600);">📎 ${l.attachmentName}</a>`
+                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 12px; color: var(--blue-600);"><i class="fa-solid fa-paperclip"></i> ${l.attachmentName}</a>`
                     : '<span style="color: var(--text-muted);">—</span>';
 
                 return `

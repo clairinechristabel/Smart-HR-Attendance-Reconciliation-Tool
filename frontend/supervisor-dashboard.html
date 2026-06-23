@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supervisor Dashboard — Food Angel Portal</title>
     <meta name="description" content="Supervisor dashboard for managing team attendance and L1 approvals">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
@@ -13,7 +14,7 @@
         <!-- ══════════ SIDEBAR ══════════ -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon" style="background: linear-gradient(135deg, var(--blue-500), var(--teal-500));">🍽️</div>
+                <div class="brand-icon" style="background: linear-gradient(135deg, var(--blue-500), var(--teal-500));"><i class="fa-solid fa-utensils"></i></div>
                 <div class="brand-text">
                     <span class="brand-name">Food Angel</span>
                     <span class="brand-sub">Supervisor Portal</span>
@@ -23,12 +24,12 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">Team Management</div>
                 <a href="supervisor-dashboard.html" class="sidebar-link active">
-                    <span class="nav-icon">📊</span> Dashboard
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
                 </a>
 
                 <div class="sidebar-section-label">Account</div>
                 <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
-                    <span class="nav-icon">🚪</span> Sign Out
+                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
                 </a>
             </nav>
 
@@ -49,7 +50,7 @@
                     <h1>My Team Dashboard</h1>
                 </div>
                 <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
-                    📅 June 2026
+                    June 2026
                 </div>
             </div>
 
@@ -58,28 +59,28 @@
                 <!-- ── Overview Stats ─────────── -->
                 <div class="stats-row">
                     <div class="stat-card">
-                        <div class="stat-icon blue">👥</div>
+                        <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">My Team Size</div>
                             <div class="stat-value" id="statTeamSize">0</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon green">✅</div>
+                        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Checked In Today</div>
                             <div class="stat-value" id="statCheckedIn">0</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon amber">⏳</div>
+                        <div class="stat-icon amber"><i class="fa-solid fa-hourglass-half"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">L1 Approvals Pending</div>
                             <div class="stat-value" id="statPending">0</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon red">⚡</div>
+                        <div class="stat-icon red"><i class="fa-solid fa-bolt"></i></div>
                         <div class="stat-info">
                             <div class="stat-label">Late Today</div>
                             <div class="stat-value" id="statLateToday">0</div>
@@ -90,7 +91,7 @@
                 <!-- ── L1 Pending Leave Requests ──── -->
                 <div class="card" style="margin-bottom: 24px;">
                     <div class="card-header">
-                        <h2>📝 Action Required: Level 1 Approvals</h2>
+                        <h2><i class="fa-solid fa-clipboard-check" style="margin-right: 8px;"></i> Action Required: Level 1 Approvals</h2>
                         <span class="badge amber" id="pendingCount">0 pending</span>
                     </div>
                     <div class="card-body" style="padding: 0;">
@@ -118,7 +119,7 @@
                 <!-- ── Team Attendance Grid ── -->
                 <div class="card" style="margin-bottom: 24px;">
                     <div class="card-header">
-                        <h2>👥 My Team Status (Today)</h2>
+                        <h2><i class="fa-solid fa-users-viewfinder" style="margin-right: 8px;"></i> My Team Status (Today)</h2>
                         <div id="locationsFilter" style="display: flex; gap: 8px; font-size: 12px; color: var(--text-secondary);">
                             <!-- Populated by JS -->
                         </div>
@@ -133,7 +134,7 @@
                 <!-- ── Recent Team Activity ───────── -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>📋 Recent Team Activity</h2>
+                        <h2><i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> Recent Team Activity</h2>
                     </div>
                     <div class="card-body" style="padding: 0;">
                         <div class="table-wrapper">
@@ -164,7 +165,7 @@
     <div class="modal" id="previewModal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h2>📎 Attachment Preview</h2>
+                <h2><i class="fa-solid fa-paperclip" style="margin-right: 8px;"></i> Attachment Preview</h2>
                 <button class="modal-close" onclick="closePreview()">✕</button>
             </div>
             <div class="modal-body" style="text-align: center;">
@@ -180,12 +181,12 @@
 
         // ── Constants ──
         const LEAVE_TYPES = {
-            'ANNUAL': { icon: '🌴', name: 'Annual' },
-            'SICK': { icon: '🏥', name: 'Sick' },
-            'PERSONAL': { icon: '⏳', name: 'Personal' },
-            'MATERNITY': { icon: '👶', name: 'Maternity' },
-            'COMPASSIONATE': { icon: '🕊️', name: 'Compassionate' },
-            'UNPAID': { icon: '🚫', name: 'Unpaid' }
+            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual' },
+            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Sick' },
+            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal' },
+            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity' },
+            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate' },
+            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'Unpaid' }
         };
 
         // Get all staff managed by this supervisor
@@ -204,11 +205,11 @@
         // ── Date ──
         function updateDateDisplay() {
             const now = new Date();
-            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right: 6px;"></i>' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
             // Show managed locations
             const locationsHtml = (user.managedLocations || []).map(loc => 
-                `<span style="background: var(--bg-body); padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">📍 ${loc}</span>`
+                `<span style="background: var(--bg-body); padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${loc}</span>`
             ).join('');
             document.getElementById('locationsFilter').innerHTML = locationsHtml;
         }
@@ -247,7 +248,7 @@
             document.getElementById('pendingCount').textContent = pending.length + ' pending L1';
 
             if (pending.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">🎉 No pending approvals for your team!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending approvals for your team!</td></tr>';
                 return;
             }
 
@@ -259,13 +260,13 @@
                 const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
 
                 const attachmentLink = l.attachmentName
-                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 11px; color: var(--blue-600); display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">📎 View Note</a>`
+                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 11px; color: var(--blue-600); display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;"><i class="fa-solid fa-paperclip"></i> View Note</a>`
                     : '';
 
                 return `
                     <tr>
                         <td><strong>${l.staffName}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staffEmail}</span></td>
-                        <td><span style="font-size: 12px;">📍 ${l.staffLocation || '—'}</span></td>
+                        <td><span style="font-size: 12px;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${l.staffLocation || '—'}</span></td>
                         <td>${typeInfo.icon} ${typeInfo.name}</td>
                         <td>${dateRange}</td>
                         <td><strong>${l.days}</strong></td>
@@ -275,8 +276,8 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 6px;">
-                                <button class="btn btn-success" style="font-size: 11px; padding: 6px 12px;" onclick="handleLeave('${l.id}', 'APPROVED')">✅ L1 Approve</button>
-                                <button class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: var(--red-500); border-color: var(--red-500);" onclick="handleLeave('${l.id}', 'REJECTED')">✕ Reject</button>
+                                <button class="btn btn-success" style="font-size: 11px; padding: 6px 12px;" onclick="handleLeave('${l.id}', 'APPROVED')"><i class="fa-solid fa-check" style="margin-right: 4px;"></i> L1 Approve</button>
+                                <button class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: var(--red-500); border-color: var(--red-500);" onclick="handleLeave('${l.id}', 'REJECTED')"><i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> Reject</button>
                             </div>
                         </td>
                     </tr>
@@ -347,7 +348,7 @@
                 let statusDetails = '';
 
                 if (onLeave) {
-                    const typeInfo = LEAVE_TYPES[onLeave.type] || { icon: '🌴', name: 'Leave' };
+                    const typeInfo = LEAVE_TYPES[onLeave.type] || { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Leave' };
                     statusBadge = `<span class="badge blue">${typeInfo.icon} On Leave</span>`;
                     statusDetails = `<div class="ec-detail">Return: ${new Date(onLeave.endDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div>`;
                 } else {
@@ -357,11 +358,11 @@
                         statusDetails = `<div class="ec-detail">Expected shift</div>`;
                     } else if (!todayRecord.checkOut) {
                         statusBadge = todayRecord.status === 'LATE' 
-                            ? '<span class="badge amber">⚠ Late In</span>' 
-                            : '<span class="badge green">✓ Checked In</span>';
+                            ? '<span class="badge amber"><i class="fa-solid fa-triangle-exclamation"></i> Late In</span>' 
+                            : '<span class="badge green"><i class="fa-solid fa-check"></i> Checked In</span>';
                         statusDetails = `<div class="ec-detail">In: ${todayRecord.checkIn}</div>`;
                     } else {
-                        statusBadge = '<span class="badge green">✓ Completed</span>';
+                        statusBadge = '<span class="badge green"><i class="fa-solid fa-check-double"></i> Completed</span>';
                         statusDetails = `<div class="ec-detail">Out: ${todayRecord.checkOut} (${todayRecord.hoursWorked} hrs)</div>`;
                     }
                 }
@@ -404,8 +405,8 @@
                 const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 
                 const statusBadge = r.status === 'LATE'
-                    ? '<span class="badge amber">⚠ Late</span>'
-                    : '<span class="badge green">✓ On Time</span>';
+                    ? '<span class="badge amber"><i class="fa-solid fa-triangle-exclamation"></i> Late</span>'
+                    : '<span class="badge green"><i class="fa-solid fa-check"></i> On Time</span>';
                 
                 return `
                     <tr>

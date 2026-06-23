@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile — Food Angel Staff Portal</title>
     <meta name="description" content="Staff profile with personal info, monthly attendance report, and full attendance log">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
@@ -13,7 +14,7 @@
         <!-- ══════════ SIDEBAR ══════════ -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">🍽️</div>
+                <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
                 <div class="brand-text">
                     <span class="brand-name">Food Angel</span>
                     <span class="brand-sub">Staff Portal</span>
@@ -23,18 +24,18 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">Menu</div>
                 <a href="staff-dashboard.html" class="sidebar-link">
-                    <span class="nav-icon">📊</span> Dashboard
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
                 </a>
                 <a href="staff-leave.html" class="sidebar-link">
-                    <span class="nav-icon">📝</span> Leave Request
+                    <span class="nav-icon"><i class="fa-solid fa-calendar-alt"></i></span> Leave Request
                 </a>
                 <a href="staff-profile.html" class="sidebar-link active">
-                    <span class="nav-icon">👤</span> My Profile
+                    <span class="nav-icon"><i class="fa-solid fa-user"></i></span> My Profile
                 </a>
 
                 <div class="sidebar-section-label">Account</div>
                 <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
-                    <span class="nav-icon">🚪</span> Sign Out
+                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
                 </a>
             </nav>
 
@@ -65,9 +66,9 @@
                         <div class="profile-name" id="profileName">Lisa Chan</div>
                         <div class="profile-emp-id" id="profileEmpId">FA-0142</div>
                         <div class="profile-badges">
-                            <span class="profile-badge role" id="badgeRole">🛡️ Staff</span>
-                            <span class="profile-badge type" id="badgeDept">🏢 Kitchen Operations</span>
-                            <span class="profile-badge active">✓ Active</span>
+                            <span class="profile-badge role" id="badgeRole"><i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> Staff</span>
+                            <span class="profile-badge type" id="badgeDept"><i class="fa-solid fa-building" style="margin-right: 4px;"></i> Kitchen Operations</span>
+                            <span class="profile-badge active"><i class="fa-solid fa-check" style="margin-right: 4px;"></i> Active</span>
                         </div>
                     </div>
                 </div>
@@ -78,35 +79,35 @@
                     <!-- Personal Information -->
                     <div class="card">
                         <div class="card-header">
-                            <h2>👤 Personal Information</h2>
+                            <h2><i class="fa-solid fa-user" style="margin-right: 8px;"></i> Personal Information</h2>
                         </div>
                         <div class="card-body">
                             <div class="info-row">
-                                <div class="info-label"><span class="info-icon">📧</span> Email</div>
+                                <div class="info-label"><span class="info-icon"><i class="fa-regular fa-envelope"></i></span> Email</div>
                                 <div class="info-value" id="infoEmail">lisa.chan@foodangel.hk</div>
                             </div>
                             <div class="info-row">
-                                <div class="info-label"><span class="info-icon">📱</span> Phone</div>
+                                <div class="info-label"><span class="info-icon"><i class="fa-solid fa-phone"></i></span> Phone</div>
                                 <div class="info-value" id="infoPhone">+852 9123 4567</div>
                             </div>
                             <div class="info-row">
-                                <div class="info-label"><span class="info-icon">🆔</span> Employee ID</div>
+                                <div class="info-label"><span class="info-icon"><i class="fa-regular fa-id-badge"></i></span> Employee ID</div>
                                 <div class="info-value" id="infoEmpId" style="font-family: 'Courier New', monospace;">FA-0142</div>
                             </div>
                             <div class="info-row">
-                                <div class="info-label"><span class="info-icon">🏢</span> Department</div>
+                                <div class="info-label"><span class="info-icon"><i class="fa-solid fa-building"></i></span> Department</div>
                                 <div class="info-value" id="infoDept">Kitchen Operations</div>
                             </div>
                             <div class="info-row">
-                                <div class="info-label"><span class="info-icon">💼</span> Position</div>
+                                <div class="info-label"><span class="info-icon"><i class="fa-solid fa-briefcase"></i></span> Position</div>
                                 <div class="info-value" id="infoPosition">Kitchen Helper</div>
                             </div>
                             <div class="info-row">
-                                <div class="info-label"><span class="info-icon">📍</span> Location</div>
+                                <div class="info-label"><span class="info-icon"><i class="fa-solid fa-location-dot"></i></span> Location</div>
                                 <div class="info-value" id="infoLocation">Sham Shui Po Kitchen</div>
                             </div>
                             <div class="info-row">
-                                <div class="info-label"><span class="info-icon">📅</span> Join Date</div>
+                                <div class="info-label"><span class="info-icon"><i class="fa-regular fa-calendar"></i></span> Join Date</div>
                                 <div class="info-value" id="infoJoinDate">Mar 15, 2024</div>
                             </div>
                         </div>
@@ -115,7 +116,7 @@
                     <!-- Monthly Attendance Report -->
                     <div class="card">
                         <div class="card-header">
-                            <h2>📊 Monthly Report</h2>
+                            <h2><i class="fa-solid fa-chart-pie" style="margin-right: 8px;"></i> Monthly Report</h2>
                             <select id="monthSelector" class="form-input" style="width: auto; padding: 6px 12px; font-size: 12px;" onchange="loadMonthlyReport()">
                                 <!-- Populated by JS -->
                             </select>
@@ -161,7 +162,7 @@
                                 <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px;">LEAVE BALANCE</div>
                                 <div class="leave-item">
                                     <div class="leave-item-header">
-                                        <div class="leave-item-name">🌴 Annual Leave</div>
+                                        <div class="leave-item-name"><i class="fa-solid fa-plane-departure" style="margin-right: 4px;"></i> Annual Leave</div>
                                         <div class="leave-item-count"><strong id="rpAnnualUsed">0</strong> of 14 used</div>
                                     </div>
                                     <div class="leave-bar-track">
@@ -170,7 +171,7 @@
                                 </div>
                                 <div class="leave-item">
                                     <div class="leave-item-header">
-                                        <div class="leave-item-name">🏥 Sick Leave</div>
+                                        <div class="leave-item-name"><i class="fa-solid fa-notes-medical" style="margin-right: 4px;"></i> Sick Leave</div>
                                         <div class="leave-item-count"><strong id="rpMedicalUsed">0</strong> of 12 used</div>
                                     </div>
                                     <div class="leave-bar-track">
@@ -179,7 +180,7 @@
                                 </div>
                                 <div class="leave-item">
                                     <div class="leave-item-header">
-                                        <div class="leave-item-name">⏳ Personal Leave</div>
+                                        <div class="leave-item-name"><i class="fa-solid fa-hourglass-half" style="margin-right: 4px;"></i> Personal Leave</div>
                                         <div class="leave-item-count"><strong id="rpPersonalUsed">0</strong> of 5 used</div>
                                     </div>
                                     <div class="leave-bar-track">
@@ -194,7 +195,7 @@
                 <!-- ── Full Attendance Log ─────── -->
                 <div class="card">
                     <div class="card-header">
-                        <h2>📋 Attendance Log</h2>
+                        <h2><i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> Attendance Log</h2>
                         <span class="badge green" style="font-size: 11px;" id="logMonthBadge">June 2026</span>
                     </div>
                     <div class="card-body" style="padding: 0;">
@@ -242,8 +243,8 @@
             document.getElementById('profileAvatar').textContent = initials;
             document.getElementById('profileName').textContent = user.fullName;
             document.getElementById('profileEmpId').textContent = user.employeeId;
-            document.getElementById('badgeRole').textContent = '🛡️ ' + (user.position || 'Staff');
-            document.getElementById('badgeDept').textContent = '🏢 ' + user.department;
+            document.getElementById('badgeRole').innerHTML = '<i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> ' + (user.position || 'Staff');
+            document.getElementById('badgeDept').innerHTML = '<i class="fa-solid fa-building" style="margin-right: 4px;"></i> ' + user.department;
 
             document.getElementById('infoEmail').textContent = user.email;
             document.getElementById('infoPhone').textContent = user.phone || '—';
@@ -357,8 +358,8 @@
                 const dayStr = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
 
                 const statusBadge = r.status === 'LATE'
-                    ? '<span class="badge amber">⚠ Late</span>'
-                    : '<span class="badge green">✓ On Time</span>';
+                    ? '<span class="badge amber"><i class="fa-solid fa-triangle-exclamation"></i> Late</span>'
+                    : '<span class="badge green"><i class="fa-solid fa-check"></i> On Time</span>';
 
                 return `
                     <tr>
