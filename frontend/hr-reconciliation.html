@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Reconciliation — Food Angel Admin</title>
+    <meta name="description" content="HR Admin tool to reconcile attendance with physical/digital records">
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- ══════════ SIDEBAR ══════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">🍽️</div>
+                <div class="brand-text">
+                    <span class="brand-name">Food Angel</span>
+                    <span class="brand-sub">HR Admin</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Core</div>
+                <a href="hr-dashboard.html" class="sidebar-link">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="hr-reconciliation.html" class="sidebar-link active">
+                    <span class="nav-icon">⚡</span> Reconciliation
+                </a>
+                <a href="hr-medical-claims.html" class="sidebar-link">
+                    <span class="nav-icon">🏥</span> Medical Claims
+                </a>
+
+                <div class="sidebar-section-label">Account</div>
+                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebarAvatar">SA</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Sarah Au</div>
+                    <div class="user-role" id="sidebarRole">HR Manager</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════ MAIN ══════════ -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">HR Admin › <span>Automated Reconciliation</span></div>
+                    <h1>Reconciliation Engine</h1>
+                </div>
+                <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
+                    📅 June 2026
+                </div>
+            </div>
+
+            <div class="page-content">
+
+                <div style="max-width: 800px; margin-bottom: 32px;">
+                    <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6;">
+                        Upload Excel exports from the legacy factory punch-card system. 
+                        The engine will cross-reference the physical timestamps with digital QR check-ins 
+                        and approved leave requests to identify discrepancies instantly.
+                    </p>
+
+                    <!-- File Upload Zone -->
+                    <div class="dropzone" id="reconDropzone" onclick="document.getElementById('excelFile').click()">
+                        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleFileSelect(event)">
+                        <div class="dropzone-icon">📊</div>
+                        <div class="dropzone-text">Upload Physical Attendance Data</div>
+                        <div class="dropzone-hint">Accepts .xlsx, .xls, or .csv formats from legacy time clocks</div>
+                    </div>
+
+                    <!-- Processing State -->
+                    <div id="processingState" style="display: none; text-align: center; padding: 40px 0;">
+                        <div class="spinner" style="display: inline-block; width: 40px; height: 40px; border-width: 4px; border-top-color: var(--blue-500); border-color: rgba(59, 130, 246, 0.2); margin-bottom: 16px;"></div>
+                        <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Reconciling Data...</div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;" id="processMessage">Parsing Excel document...</div>
+                        
+                        <div style="width: 100%; max-width: 300px; height: 6px; background: var(--border-light); border-radius: 10px; margin: 16px auto 0; overflow: hidden;">
+                            <div id="progressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue-500), var(--green-500)); transition: width 0.2s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Results Area ── -->
+                <div class="results-area" id="resultsArea">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px;">
+                        <h2>Reconciliation Results</h2>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-outline" onclick="resetRecon()">New Upload</button>
+                            <button class="btn btn-primary" onclick="exportResults()">📥 Export Report</button>
+                        </div>
+                    </div>
+
+                    <div class="meta-strip">
+                        <div class="meta-item">
+                            <span class="meta-label">Run Date</span>
+                            <span class="meta-value" id="resDate">—</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">File Processed</span>
+                            <span class="meta-value" id="resFile">—</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Total Records</span>
+                            <span class="meta-value" id="resTotal">0</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Time Saved</span>
+                            <span class="meta-value" style="color: var(--green-600);">~14.5 hours</span>
+                        </div>
+                    </div>
+
+                    <div class="recon-summary">
+                        <div class="flag-card clean">
+                            <div class="fc-icon">✅</div>
+                            <div class="fc-value" id="resClean">0</div>
+                            <div class="fc-label">Clean Matches</div>
+                        </div>
+                        <div class="flag-card absent">
+                            <div class="fc-icon">🚨</div>
+                            <div class="fc-value" id="resAbsent">0</div>
+                            <div class="fc-label">Unexcused Absences</div>
+                        </div>
+                        <div class="flag-card late">
+                            <div class="fc-icon">⏰</div>
+                            <div class="fc-value" id="resLate">0</div>
+                            <div class="fc-label">Late / Early Leave</div>
+                        </div>
+                        <div class="flag-card mismatch">
+                            <div class="fc-icon">⚠️</div>
+                            <div class="fc-value" id="resMismatch">0</div>
+                            <div class="fc-label">Missing Check-outs</div>
+                        </div>
+                    </div>
+
+                    <!-- Discrepancy Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <h2 style="margin:0;">Discrepancy Report</h2>
+                                <select id="issueFilter" class="form-input" style="padding: 4px 8px; width: auto; font-size: 11px;" onchange="renderDiscrepancyTable()">
+                                    <option value="ALL">All Issues</option>
+                                    <option value="UNEXCUSED_ABSENCE">Unexcused Absences</option>
+                                    <option value="LATE_ARRIVAL">Late Arrivals</option>
+                                    <option value="MISSING_CHECKOUT">Missing Check-outs</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Staff Name</th>
+                                            <th>Location</th>
+                                            <th>Issue Type</th>
+                                            <th>System Record</th>
+                                            <th>Leave Status</th>
+                                            <th>Resolution Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="discrepancyBody">
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ── Auth guard ──
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user || user.role !== 'HR_ADMIN') window.location.href = 'index.html';
+
+        // ── Sidebar ──
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || 'HR Admin';
+        }
+
+        function updateDateDisplay() {
+            const now = new Date();
+            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        // ── Reconciliation Logic ──
+        let currentDiscrepancies = [];
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('reconDropzone').style.display = 'none';
+            document.getElementById('processingState').style.display = 'block';
+            document.getElementById('resultsArea').classList.remove('visible');
+            
+            // Simulate processing steps
+            simulateProcessing(file.name);
+        }
+
+        function simulateProcessing(fileName) {
+            const msgs = [
+                'Parsing Excel document...',
+                'Reading physical clock-in data...',
+                'Cross-referencing digital QR scans...',
+                'Checking approved leave requests...',
+                'Identifying discrepancies...',
+                'Generating final report...'
+            ];
+            
+            const bar = document.getElementById('progressBar');
+            const msgEl = document.getElementById('processMessage');
+            
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step >= msgs.length) {
+                    clearInterval(interval);
+                    completeReconciliation(fileName);
+                    return;
+                }
+                
+                msgEl.textContent = msgs[step];
+                bar.style.width = `${((step + 1) / msgs.length) * 100}%`;
+                step++;
+            }, 600); // 3.6s total animation
+        }
+
+        function completeReconciliation(fileName) {
+            document.getElementById('processingState').style.display = 'none';
+            document.getElementById('resultsArea').classList.add('visible');
+            
+            // In a real app, this data would come from the backend API.
+            // Here, we generate a realistic simulation based on localStorage data.
+            generateReconciliationResults(fileName);
+        }
+
+        function generateReconciliationResults(fileName) {
+            const today = new Date().toISOString().split('T')[0];
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const allStaff = JSON.parse(localStorage.getItem('all_staff') || '[]');
+
+            // Base stats
+            const totalRecords = records.length + 42; // Fake padding for physical records
+            let cleanCount = records.length - 8;
+            let lateCount = 0;
+            let absentCount = 0;
+            let mismatchCount = 0;
+            
+            currentDiscrepancies = [];
+
+            // 1. Find actual lates from records
+            records.forEach(r => {
+                if (r.status === 'LATE') {
+                    lateCount++;
+                    currentDiscrepancies.push({
+                        date: r.date,
+                        staffEmail: r.staffEmail,
+                        staffName: r.staffName,
+                        location: r.location || 'Unknown',
+                        type: 'LATE_ARRIVAL',
+                        sysRecord: `In: ${r.checkIn}`,
+                        leaveStatus: 'None',
+                        action: 'Dock Pay'
+                    });
+                }
+                if (!r.checkOut && r.date !== today) {
+                    mismatchCount++;
+                    currentDiscrepancies.push({
+                        date: r.date,
+                        staffEmail: r.staffEmail,
+                        staffName: r.staffName,
+                        location: r.location || 'Unknown',
+                        type: 'MISSING_CHECKOUT',
+                        sysRecord: `In: ${r.checkIn} / Out: None`,
+                        leaveStatus: 'None',
+                        action: 'Request Missing Time'
+                    });
+                }
+            });
+
+            // 2. Simulate unexcused absences (people not in records AND not on approved leave)
+            // Let's generate a couple of fake ones for the demo
+            const demoAbsentees = allStaff.slice(0, 2);
+            demoAbsentees.forEach(staff => {
+                const checkDate = new Date();
+                checkDate.setDate(checkDate.getDate() - 3); // 3 days ago
+                const dateStr = checkDate.toISOString().split('T')[0];
+                
+                // Check if they had approved leave
+                const hasLeave = leaves.some(l => 
+                    l.staffEmail === staff.email && 
+                    l.status === 'APPROVED' && 
+                    l.startDate <= dateStr && l.endDate >= dateStr
+                );
+
+                if (!hasLeave) {
+                    absentCount++;
+                    currentDiscrepancies.push({
+                        date: dateStr,
+                        staffEmail: staff.email,
+                        staffName: staff.fullName,
+                        location: staff.location,
+                        type: 'UNEXCUSED_ABSENCE',
+                        sysRecord: `No physical or digital record`,
+                        leaveStatus: 'None on file',
+                        action: 'Issue Warning'
+                    });
+                }
+            });
+
+            // 3. Simulate a mismatch (physical says they were there, digital doesn't)
+            if (allStaff.length > 2) {
+                mismatchCount++;
+                currentDiscrepancies.push({
+                    date: today,
+                    staffEmail: allStaff[2].email,
+                    staffName: allStaff[2].fullName,
+                    location: allStaff[2].location,
+                    type: 'SYSTEM_MISMATCH',
+                    sysRecord: `Physical: 08:50 / Digital: None`,
+                    leaveStatus: 'None',
+                    action: 'Merge Records'
+                });
+            }
+
+            // Update UI
+            document.getElementById('resDate').textContent = new Date().toLocaleString();
+            document.getElementById('resFile').textContent = fileName;
+            document.getElementById('resTotal').textContent = totalRecords;
+            
+            document.getElementById('resClean').textContent = totalRecords - (lateCount + absentCount + mismatchCount);
+            document.getElementById('resLate').textContent = lateCount;
+            document.getElementById('resAbsent').textContent = absentCount;
+            document.getElementById('resMismatch').textContent = mismatchCount;
+
+            renderDiscrepancyTable();
+        }
+
+        function renderDiscrepancyTable() {
+            const filter = document.getElementById('issueFilter').value;
+            const tbody = document.getElementById('discrepancyBody');
+            
+            let displayData = currentDiscrepancies;
+            if (filter !== 'ALL') {
+                displayData = currentDiscrepancies.filter(d => d.type === filter);
+            }
+
+            // Sort by date desc
+            displayData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (displayData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No discrepancies match this filter.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = displayData.map(d => {
+                const dateObj = new Date(d.date + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                let typeBadge = '';
+                if (d.type === 'UNEXCUSED_ABSENCE') typeBadge = '<span class="badge red">🚨 Absence</span>';
+                else if (d.type === 'LATE_ARRIVAL') typeBadge = '<span class="badge amber">⏰ Late In</span>';
+                else if (d.type === 'MISSING_CHECKOUT') typeBadge = '<span class="badge blue">⚠️ Missed Out</span>';
+                else typeBadge = '<span class="badge purple">🔄 Mismatch</span>';
+
+                let actionBtn = '';
+                if (d.action === 'Dock Pay') actionBtn = `<button class="btn btn-outline" style="font-size:10px; padding:4px 8px; border-color:var(--amber-300); color:var(--amber-600);">Dock Pay</button>`;
+                else if (d.action === 'Issue Warning') actionBtn = `<button class="btn btn-outline" style="font-size:10px; padding:4px 8px; border-color:var(--red-300); color:var(--red-600);">Issue Warning</button>`;
+                else actionBtn = `<button class="btn btn-outline" style="font-size:10px; padding:4px 8px;">Resolve</button>`;
+
+                return `
+                    <tr>
+                        <td><strong>${dateStr}</strong></td>
+                        <td>${d.staffName}<br><span style="font-size: 10px; color: var(--text-muted);">${d.staffEmail}</span></td>
+                        <td><span style="font-size: 11px;">${d.location}</span></td>
+                        <td>${typeBadge}</td>
+                        <td style="font-size: 12px; font-family: monospace;">${d.sysRecord}</td>
+                        <td style="font-size: 11px; color: var(--text-muted);">${d.leaveStatus}</td>
+                        <td>${actionBtn}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function resetRecon() {
+            document.getElementById('resultsArea').classList.remove('visible');
+            document.getElementById('reconDropzone').style.display = 'block';
+            document.getElementById('excelFile').value = '';
+            
+            // Reset progress bar just in case
+            document.getElementById('progressBar').style.width = '0%';
+        }
+
+        function exportResults() {
+            showToast('📥 Downloading Reconciliation_Report.xlsx', 'info');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'floating-toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ── Init ──
+        updateSidebar();
+        updateDateDisplay();
+    </script>
+</body>
+</html>

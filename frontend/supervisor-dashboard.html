@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supervisor Dashboard — Food Angel Portal</title>
+    <meta name="description" content="Supervisor dashboard for managing team attendance and L1 approvals">
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- ══════════ SIDEBAR ══════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon" style="background: linear-gradient(135deg, var(--blue-500), var(--teal-500));">🍽️</div>
+                <div class="brand-text">
+                    <span class="brand-name">Food Angel</span>
+                    <span class="brand-sub">Supervisor Portal</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Team Management</div>
+                <a href="supervisor-dashboard.html" class="sidebar-link active">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+
+                <div class="sidebar-section-label">Account</div>
+                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebarAvatar">DW</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">David Wong</div>
+                    <div class="user-role" id="sidebarRole">Supervisor</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════ MAIN ══════════ -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">Supervisor Portal › <span>Dashboard</span></div>
+                    <h1>My Team Dashboard</h1>
+                </div>
+                <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
+                    📅 June 2026
+                </div>
+            </div>
+
+            <div class="page-content">
+
+                <!-- ── Overview Stats ─────────── -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-label">My Team Size</div>
+                            <div class="stat-value" id="statTeamSize">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Checked In Today</div>
+                            <div class="stat-value" id="statCheckedIn">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber">⏳</div>
+                        <div class="stat-info">
+                            <div class="stat-label">L1 Approvals Pending</div>
+                            <div class="stat-value" id="statPending">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">⚡</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Late Today</div>
+                            <div class="stat-value" id="statLateToday">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── L1 Pending Leave Requests ──── -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2>📝 Action Required: Level 1 Approvals</h2>
+                        <span class="badge amber" id="pendingCount">0 pending</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Location</th>
+                                        <th>Type</th>
+                                        <th>Dates</th>
+                                        <th>Days</th>
+                                        <th>Reason / Note</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pendingBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Team Attendance Grid ── -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2>👥 My Team Status (Today)</h2>
+                        <div id="locationsFilter" style="display: flex; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 20px;">
+                        <div class="employee-grid" id="teamGrid">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Recent Team Activity ───────── -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Recent Team Activity</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Staff</th>
+                                        <th>Check In</th>
+                                        <th>Check Out</th>
+                                        <th>Hours</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ══════════ ATTACHMENT PREVIEW MODAL ══════════ -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>📎 Attachment Preview</h2>
+                <button class="modal-close" onclick="closePreview()">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img id="previewImage" src="" alt="preview" style="max-width: 100%; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Auth guard ──
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user || user.role !== 'SUPERVISOR') window.location.href = 'index.html';
+
+        // ── Constants ──
+        const LEAVE_TYPES = {
+            'ANNUAL': { icon: '🌴', name: 'Annual' },
+            'SICK': { icon: '🏥', name: 'Sick' },
+            'PERSONAL': { icon: '⏳', name: 'Personal' },
+            'MATERNITY': { icon: '👶', name: 'Maternity' },
+            'COMPASSIONATE': { icon: '🕊️', name: 'Compassionate' },
+            'UNPAID': { icon: '🚫', name: 'Unpaid' }
+        };
+
+        // Get all staff managed by this supervisor
+        const allStaff = JSON.parse(localStorage.getItem('all_staff') || '[]');
+        const myTeam = allStaff.filter(s => s.supervisorEmail === user.email);
+
+        // ── Sidebar ──
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || 'Supervisor';
+        }
+
+        // ── Date ──
+        function updateDateDisplay() {
+            const now = new Date();
+            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Show managed locations
+            const locationsHtml = (user.managedLocations || []).map(loc => 
+                `<span style="background: var(--bg-body); padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">📍 ${loc}</span>`
+            ).join('');
+            document.getElementById('locationsFilter').innerHTML = locationsHtml;
+        }
+
+        // ── Overview Stats ──
+        function loadOverviewStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+
+            // Filter records for my team today
+            const teamEmails = myTeam.map(s => s.email);
+            const todayRecords = records.filter(r => r.date === today && teamEmails.includes(r.staffEmail));
+            
+            const checkedIn = todayRecords.length;
+            const lateToday = todayRecords.filter(r => r.status === 'LATE').length;
+            
+            // Pending L1 leaves (status = PENDING, supervisorApproval = PENDING)
+            const pendingLeaves = leaves.filter(l => teamEmails.includes(l.staffEmail) && l.supervisorApproval === 'PENDING');
+
+            document.getElementById('statTeamSize').textContent = myTeam.length;
+            document.getElementById('statCheckedIn').textContent = checkedIn;
+            document.getElementById('statLateToday').textContent = lateToday;
+            document.getElementById('statPending').textContent = pendingLeaves.length;
+        }
+
+        // ── Pending Leave Requests ──
+        function loadPendingLeaves() {
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const teamEmails = myTeam.map(s => s.email);
+            
+            // Filter to only leaves from my team that need L1 approval
+            const pending = leaves.filter(l => teamEmails.includes(l.staffEmail) && l.supervisorApproval === 'PENDING');
+            
+            const tbody = document.getElementById('pendingBody');
+            document.getElementById('pendingCount').textContent = pending.length + ' pending L1';
+
+            if (pending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">🎉 No pending approvals for your team!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pending.map(l => {
+                const typeInfo = LEAVE_TYPES[l.type] || { icon: '📄', name: l.type };
+
+                const startStr = new Date(l.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
+
+                const attachmentLink = l.attachmentName
+                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 11px; color: var(--blue-600); display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;">📎 View Note</a>`
+                    : '';
+
+                return `
+                    <tr>
+                        <td><strong>${l.staffName}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staffEmail}</span></td>
+                        <td><span style="font-size: 12px;">📍 ${l.staffLocation || '—'}</span></td>
+                        <td>${typeInfo.icon} ${typeInfo.name}</td>
+                        <td>${dateRange}</td>
+                        <td><strong>${l.days}</strong></td>
+                        <td style="font-size: 12px; max-width: 160px;">
+                            ${l.reason || '<span style="color: var(--text-muted);">No reason provided</span>'}
+                            ${attachmentLink ? '<br>' + attachmentLink : ''}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn btn-success" style="font-size: 11px; padding: 6px 12px;" onclick="handleLeave('${l.id}', 'APPROVED')">✅ L1 Approve</button>
+                                <button class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: var(--red-500); border-color: var(--red-500);" onclick="handleLeave('${l.id}', 'REJECTED')">✕ Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function handleLeave(leaveId, l1Decision) {
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const leave = leaves.find(l => l.id === leaveId);
+            
+            if (leave) {
+                leave.supervisorApproval = l1Decision;
+                
+                if (l1Decision === 'REJECTED') {
+                    // Fast-fail: if L1 rejects, the whole request is rejected
+                    leave.status = 'REJECTED';
+                    leave.hrApproval = 'N/A';
+                } else if (l1Decision === 'APPROVED') {
+                    // For Sick Leave (up to 2 days) maybe only L1 is needed, but we default to HR review for prototype
+                    // except if it's explicitly coded otherwise. Here we route to L2.
+                    if (leave.type === 'SICK' && leave.days <= 2) {
+                        leave.status = 'APPROVED'; // Auto-approve small sick leaves
+                        leave.hrApproval = 'N/A';
+                        showToast(`L1 Approved. No HR review needed for short sick leave.`, 'success');
+                    } else {
+                        leave.status = 'SUPERVISOR_APPROVED'; // Moves to HR
+                        showToast(`L1 Approved. Routed to HR for final L2 approval.`, 'success');
+                    }
+                }
+                
+                localStorage.setItem('leave_requests', JSON.stringify(leaves));
+
+                loadPendingLeaves();
+                loadOverviewStats();
+                loadTeamGrid();
+                
+                if (l1Decision === 'REJECTED') {
+                    showToast(`Rejected ${leave.staffName}'s leave request.`, 'error');
+                }
+            }
+        }
+
+        // ── Team Grid (Today's Status) ──
+        function loadTeamGrid() {
+            const today = new Date().toISOString().split('T')[0];
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const grid = document.getElementById('teamGrid');
+
+            if (myTeam.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 32px; color: var(--text-muted);">You currently have no assigned team members.</div>';
+                return;
+            }
+
+            grid.innerHTML = myTeam.map(staff => {
+                const initials = staff.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                
+                // Check if they are on leave today
+                const onLeave = leaves.find(l => 
+                    l.staffEmail === staff.email && 
+                    l.status === 'APPROVED' &&
+                    l.startDate <= today && 
+                    l.endDate >= today
+                );
+
+                let statusBadge = '';
+                let statusDetails = '';
+
+                if (onLeave) {
+                    const typeInfo = LEAVE_TYPES[onLeave.type] || { icon: '🌴', name: 'Leave' };
+                    statusBadge = `<span class="badge blue">${typeInfo.icon} On Leave</span>`;
+                    statusDetails = `<div class="ec-detail">Return: ${new Date(onLeave.endDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div>`;
+                } else {
+                    const todayRecord = records.find(r => r.date === today && r.staffEmail === staff.email);
+                    if (!todayRecord) {
+                        statusBadge = '<span class="badge" style="background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-light);">Not In Yet</span>';
+                        statusDetails = `<div class="ec-detail">Expected shift</div>`;
+                    } else if (!todayRecord.checkOut) {
+                        statusBadge = todayRecord.status === 'LATE' 
+                            ? '<span class="badge amber">⚠ Late In</span>' 
+                            : '<span class="badge green">✓ Checked In</span>';
+                        statusDetails = `<div class="ec-detail">In: ${todayRecord.checkIn}</div>`;
+                    } else {
+                        statusBadge = '<span class="badge green">✓ Completed</span>';
+                        statusDetails = `<div class="ec-detail">Out: ${todayRecord.checkOut} (${todayRecord.hoursWorked} hrs)</div>`;
+                    }
+                }
+
+                return `
+                    <div class="employee-card" onclick="window.location.href='staff-profile.html'">
+                        <div class="ec-avatar">${initials}</div>
+                        <div class="ec-info">
+                            <div class="ec-name">${staff.fullName}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">${staff.position}</div>
+                            ${statusDetails}
+                            <div class="ec-badges">
+                                ${statusBadge}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ── Recent Team Activity ──
+        function loadRecentActivity() {
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            const teamEmails = myTeam.map(s => s.email);
+            
+            const teamRecords = records
+                .filter(r => teamEmails.includes(r.staffEmail))
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10); // Last 10 records
+
+            const tbody = document.getElementById('activityBody');
+
+            if (teamRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No recent activity from your team.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = teamRecords.map(r => {
+                const dateObj = new Date(r.date + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                
+                const statusBadge = r.status === 'LATE'
+                    ? '<span class="badge amber">⚠ Late</span>'
+                    : '<span class="badge green">✓ On Time</span>';
+                
+                return `
+                    <tr>
+                        <td><strong>${dateStr}</strong></td>
+                        <td>${r.staffName}</td>
+                        <td>${r.checkIn || '—'}</td>
+                        <td>${r.checkOut || '<span style="color: var(--text-muted);">—</span>'}</td>
+                        <td>${r.hoursWorked ? r.hoursWorked + ' hrs' : '—'}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── Attachment Preview ──
+        function showPreview(leaveId) {
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const leave = leaves.find(l => l.id === leaveId);
+            if (!leave || !leave.attachment) return;
+
+            document.getElementById('previewImage').src = leave.attachment;
+            document.getElementById('previewModal').classList.add('visible');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('visible');
+        }
+
+        document.getElementById('previewModal').addEventListener('click', (e) => {
+            if (e.target.id === 'previewModal') closePreview();
+        });
+
+        // ── Toast ──
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'floating-toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ── Init ──
+        updateSidebar();
+        updateDateDisplay();
+        loadOverviewStats();
+        loadPendingLeaves();
+        loadTeamGrid();
+        loadRecentActivity();
+    </script>
+</body>
+</html>

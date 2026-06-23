@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Dashboard — Smart HR Management</title>
-    <meta name="description" content="Staff attendance dashboard for Smart HR Management employees">
-    <link rel="stylesheet" href="styles.css">
+    <title>Dashboard — Food Angel Staff Portal</title>
+    <meta name="description" content="Staff dashboard with QR check-in/out, daily status, and monthly attendance summary">
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
     <div class="app-layout">
@@ -13,39 +13,36 @@
         <!-- ══════════ SIDEBAR ══════════ -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <div class="brand-icon">📊</div>
+                <div class="brand-icon">🍽️</div>
                 <div class="brand-text">
-                    <span class="brand-name">Smart HR</span>
-                    <span class="brand-sub">Management System</span>
+                    <span class="brand-name">Food Angel</span>
+                    <span class="brand-sub">Staff Portal</span>
                 </div>
             </div>
 
             <nav class="sidebar-nav">
-                <div class="sidebar-section-label">Main</div>
-                <a href="#" class="sidebar-link active">
+                <div class="sidebar-section-label">Menu</div>
+                <a href="staff-dashboard.html" class="sidebar-link active">
                     <span class="nav-icon">📊</span> Dashboard
                 </a>
-                <a href="#" class="sidebar-link">
-                    <span class="nav-icon">📅</span> My Attendance
+                <a href="staff-leave.html" class="sidebar-link">
+                    <span class="nav-icon">📝</span> Leave Request
                 </a>
-                <a href="#" class="sidebar-link">
-                    <span class="nav-icon">📝</span> Leave Requests
+                <a href="staff-profile.html" class="sidebar-link">
+                    <span class="nav-icon">👤</span> My Profile
                 </a>
 
                 <div class="sidebar-section-label">Account</div>
-                <a href="#" class="sidebar-link">
-                    <span class="nav-icon">⚙️</span> Settings
-                </a>
-                <a href="index.html" class="sidebar-link">
+                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
                     <span class="nav-icon">🚪</span> Sign Out
                 </a>
             </nav>
 
-            <div class="sidebar-user">
+            <div class="sidebar-user" style="cursor: pointer;" onclick="window.location.href='staff-profile.html'">
                 <div class="user-avatar" id="sidebarAvatar">LC</div>
                 <div class="user-info">
                     <div class="user-name" id="sidebarName">Lisa Chan</div>
-                    <div class="user-role" id="sidebarRole">Full-Time · Kitchen Staff</div>
+                    <div class="user-role" id="sidebarRole">Kitchen Helper</div>
                 </div>
             </div>
         </aside>
@@ -57,54 +54,72 @@
                     <div class="breadcrumb">Staff Portal › <span>Dashboard</span></div>
                     <h1>My Dashboard</h1>
                 </div>
-                <div style="font-size: 13px; color: var(--text-secondary);">
+                <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
                     📅 June 2026
                 </div>
             </div>
 
             <div class="page-content">
 
-                <!-- ── Stats ─────────────────────────── -->
-                <div class="stats-row">
+                <!-- ── CHECK-IN / CHECK-OUT SECTION ──── -->
+                <div class="checkin-section" id="checkinSection">
+                    <div class="timer-label" id="timerLabel">Not checked in yet</div>
+                    <div class="timer-display" id="timerDisplay">00:00:00</div>
+
+                    <button class="checkin-btn check-in" id="checkinBtn" onclick="startScan()">
+                        📷 Scan QR to Check In
+                    </button>
+
+                    <div class="checkin-time" id="checkinInfo" style="display: none;">
+                        ⏰ Checked in at <strong id="checkinTimeStr">—</strong>
+                    </div>
+
+                    <div class="today-status not-checked" id="todayStatus">
+                        ⏳ Waiting for check-in
+                    </div>
+                </div>
+
+                <!-- ── MONTHLY STATS ───────────────── -->
+                <div class="stats-row" id="statsRow">
                     <div class="stat-card">
-                        <div class="stat-icon green">✅</div>
+                        <div class="stat-icon green">📅</div>
                         <div class="stat-info">
-                            <div class="stat-label">Days Present</div>
-                            <div class="stat-value">14</div>
-                            <span class="stat-change up">↑ On track</span>
+                            <div class="stat-label">Days Worked</div>
+                            <div class="stat-value" id="statDaysWorked">0</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="statDaysTotal">this month</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon amber">⚡</div>
                         <div class="stat-info">
                             <div class="stat-label">Late Arrivals</div>
-                            <div class="stat-value">2</div>
-                            <span class="stat-change down">↓ vs last month</span>
+                            <div class="stat-value" id="statLate">0</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">this month</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon blue">🏖️</div>
                         <div class="stat-info">
-                            <div class="stat-label">Leave Taken</div>
-                            <div class="stat-value">1</div>
-                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">of 14 annual days</div>
+                            <div class="stat-label">Annual Leave Used</div>
+                            <div class="stat-value" id="statAnnual">0</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="statAnnualTotal">of 14 days</div>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon teal">⏱️</div>
+                        <div class="stat-icon purple">🏥</div>
                         <div class="stat-info">
-                            <div class="stat-label">Avg. Hours / Day</div>
-                            <div class="stat-value">8.2</div>
-                            <span class="stat-change up">↑ Good</span>
+                            <div class="stat-label">Sick Leave Used</div>
+                            <div class="stat-value" id="statMedical">0</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="statMedicalTotal">of 12 days</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ── Recent Attendance ──────────────── -->
-                <div class="card" style="margin-bottom: 24px;">
+                <!-- ── RECENT ACTIVITY ─────────────── -->
+                <div class="card">
                     <div class="card-header">
-                        <h2>📅 Recent Attendance</h2>
-                        <a href="#" class="btn btn-outline" style="font-size: 12px; padding: 6px 14px;">View All</a>
+                        <h2>📋 Recent Activity</h2>
+                        <a href="staff-profile.html" class="btn btn-outline" style="font-size: 12px; padding: 6px 14px;">View Full Report</a>
                     </div>
                     <div class="card-body" style="padding: 0;">
                         <div class="table-wrapper">
@@ -112,119 +127,14 @@
                                 <thead>
                                     <tr>
                                         <th>Date</th>
-                                        <th>Clock In</th>
-                                        <th>Clock Out</th>
+                                        <th>Check In</th>
+                                        <th>Check Out</th>
                                         <th>Hours</th>
                                         <th>Status</th>
-                                        <th>Location</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>Wed, Jun 18</strong></td>
-                                        <td>08:02 AM</td>
-                                        <td>05:15 PM</td>
-                                        <td>9.2 hrs</td>
-                                        <td><span class="badge green">✓ On Time</span></td>
-                                        <td>Sham Shui Po Kitchen</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Tue, Jun 17</strong></td>
-                                        <td>07:58 AM</td>
-                                        <td>05:05 PM</td>
-                                        <td>9.1 hrs</td>
-                                        <td><span class="badge green">✓ On Time</span></td>
-                                        <td>Sham Shui Po Kitchen</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Mon, Jun 16</strong></td>
-                                        <td>08:32 AM</td>
-                                        <td>05:10 PM</td>
-                                        <td>8.6 hrs</td>
-                                        <td><span class="badge amber">⚠ Late (17 min)</span></td>
-                                        <td>Sham Shui Po Kitchen</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Fri, Jun 13</strong></td>
-                                        <td>08:00 AM</td>
-                                        <td>05:00 PM</td>
-                                        <td>9.0 hrs</td>
-                                        <td><span class="badge green">✓ On Time</span></td>
-                                        <td>Sham Shui Po Kitchen</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Thu, Jun 12</strong></td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                        <td>—</td>
-                                        <td><span class="badge blue">🏖️ Annual Leave</span></td>
-                                        <td>—</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Wed, Jun 11</strong></td>
-                                        <td>07:55 AM</td>
-                                        <td>05:08 PM</td>
-                                        <td>9.2 hrs</td>
-                                        <td><span class="badge green">✓ On Time</span></td>
-                                        <td>Sham Shui Po Kitchen</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Tue, Jun 10</strong></td>
-                                        <td>08:25 AM</td>
-                                        <td>05:30 PM</td>
-                                        <td>9.1 hrs</td>
-                                        <td><span class="badge amber">⚠ Late (10 min)</span></td>
-                                        <td>Sham Shui Po Kitchen</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ── Leave Requests ─────────────────── -->
-                <div class="card">
-                    <div class="card-header">
-                        <h2>📅 Recent Leave Requests</h2>
-                    </div>
-                    <div class="card-body" style="padding: 0;">
-                        <div class="table-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Type</th>
-                                        <th>From</th>
-                                        <th>To</th>
-                                        <th>Days</th>
-                                        <th>Status</th>
-                                        <th>Approved By</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><span class="badge blue">Annual</span></td>
-                                        <td>Jun 12, 2026</td>
-                                        <td>Jun 12, 2026</td>
-                                        <td>1</td>
-                                        <td><span class="badge green">✓ Approved</span></td>
-                                        <td>David Wong (Supervisor)</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="badge purple">Sick</span></td>
-                                        <td>May 20, 2026</td>
-                                        <td>May 21, 2026</td>
-                                        <td>2</td>
-                                        <td><span class="badge green">✓ Approved</span></td>
-                                        <td>David Wong (Supervisor)</td>
-                                    </tr>
-                                    <tr>
-                                        <td><span class="badge blue">Annual</span></td>
-                                        <td>Jul 14, 2026</td>
-                                        <td>Jul 18, 2026</td>
-                                        <td>5</td>
-                                        <td><span class="badge amber">⏳ Pending</span></td>
-                                        <td>—</td>
-                                    </tr>
+                                <tbody id="recentActivityBody">
+                                    <!-- Populated by JS -->
                                 </tbody>
                             </table>
                         </div>
@@ -235,31 +145,313 @@
         </main>
     </div>
 
+    <!-- ══════════ CAMERA OVERLAY ══════════ -->
+    <div class="camera-overlay" id="cameraOverlay">
+        <button class="camera-close" onclick="closeScan()">✕</button>
+        <div class="camera-container">
+            <video id="cameraFeed" autoplay playsinline></video>
+            <div class="scan-frame"></div>
+        </div>
+        <div class="camera-status" id="cameraStatus">
+            <div class="pulse"></div>
+            Scanning for QR code...
+        </div>
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                document.getElementById('sidebarName').textContent = user.fullName;
-                
-                // Initials
-                const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                document.getElementById('sidebarAvatar').textContent = initials;
-                
-                // Role formatting
-                let roleStr = '';
-                if (user.role === 'HR_ADMIN') roleStr += 'HR Admin';
-                else if (user.role === 'FINANCE_ADMIN') roleStr += 'Finance Admin';
-                else if (user.role === 'SUPERVISOR') roleStr += 'Supervisor';
-                else roleStr += 'Staff';
-                
-                if (user.staffType === 'PART_TIME') roleStr += ' (Part-Time)';
-                else if (user.staffType === 'VOLUNTEER') roleStr += ' (Volunteer)';
-                else roleStr += ' (Full-Time)';
-                
-                document.getElementById('sidebarRole').textContent = roleStr;
+        // ── Auth guard ──
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user) window.location.href = 'index.html';
+
+        // ── State ──
+        let timerInterval = null;
+        let checkInTime = null;
+        let cameraStream = null;
+
+        // ── Sidebar ──
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || user.department;
+        }
+
+        // ── Date display ──
+        function updateDateDisplay() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', options);
+        }
+
+        // ── Load today's check-in state ──
+        function loadTodayState() {
+            const today = new Date().toISOString().split('T')[0];
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            // Filter only to current user's records
+            const todayRecord = records.find(r => r.date === today && r.staffEmail === user.email);
+
+            if (todayRecord) {
+                checkInTime = todayRecord.checkIn;
+
+                if (todayRecord.checkOut) {
+                    showCheckedOut(todayRecord);
+                } else {
+                    showCheckedIn(todayRecord.checkIn);
+                }
             }
-        });
+        }
+
+        function showCheckedIn(timeStr) {
+            const section = document.getElementById('checkinSection');
+            const btn = document.getElementById('checkinBtn');
+            const info = document.getElementById('checkinInfo');
+            const status = document.getElementById('todayStatus');
+            const label = document.getElementById('timerLabel');
+
+            section.classList.add('checked-in');
+            btn.className = 'checkin-btn check-out';
+            btn.innerHTML = '📷 Scan QR to Check Out';
+            info.style.display = 'block';
+            document.getElementById('checkinTimeStr').textContent = timeStr;
+            label.textContent = 'Working time';
+
+            const [h] = timeStr.split(':').map(Number);
+            if (h >= 9) {
+                status.className = 'today-status late';
+                status.textContent = `⚠️ Late — Checked in at ${timeStr} (after 09:00)`;
+            } else {
+                status.className = 'today-status on-time';
+                status.textContent = `✅ On Time — Checked in at ${timeStr}`;
+            }
+
+            startTimer(timeStr);
+        }
+
+        function showCheckedOut(record) {
+            const section = document.getElementById('checkinSection');
+            const btn = document.getElementById('checkinBtn');
+            const info = document.getElementById('checkinInfo');
+            const status = document.getElementById('todayStatus');
+            const label = document.getElementById('timerLabel');
+            const timer = document.getElementById('timerDisplay');
+
+            section.classList.remove('checked-in');
+            btn.style.display = 'none';
+            info.style.display = 'block';
+            document.getElementById('checkinTimeStr').textContent = `${record.checkIn} — ${record.checkOut}`;
+            label.textContent = 'Total worked today';
+            timer.textContent = formatHours(record.hoursWorked);
+
+            const [h] = record.checkIn.split(':').map(Number);
+            if (h >= 9) {
+                status.className = 'today-status late';
+                status.textContent = `⚠️ Late — Checked in at ${record.checkIn}`;
+            } else {
+                status.className = 'today-status on-time';
+                status.textContent = `✅ Completed — ${record.hoursWorked} hours worked`;
+            }
+        }
+
+        function formatHours(hours) {
+            const h = Math.floor(hours);
+            const m = Math.round((hours - h) * 60);
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+        }
+
+        // ── Timer ──
+        function startTimer(checkInTimeStr) {
+            const [ch, cm] = checkInTimeStr.split(':').map(Number);
+            const now = new Date();
+            const checkIn = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ch, cm, 0);
+
+            function updateTimer() {
+                const diff = Math.floor((new Date() - checkIn) / 1000);
+                const hours = Math.floor(diff / 3600);
+                const mins = Math.floor((diff % 3600) / 60);
+                const secs = diff % 60;
+                document.getElementById('timerDisplay').textContent =
+                    `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }
+
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // ── QR Scanner ──
+        async function startScan() {
+            const overlay = document.getElementById('cameraOverlay');
+            const video = document.getElementById('cameraFeed');
+            const statusEl = document.getElementById('cameraStatus');
+
+            overlay.classList.add('active');
+
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
+                });
+                video.srcObject = cameraStream;
+
+                setTimeout(() => {
+                    statusEl.innerHTML = '<div class="pulse" style="background: var(--green-500);"></div> ✅ QR Code detected!';
+
+                    setTimeout(() => {
+                        closeScan();
+                        processCheckInOut();
+                    }, 800);
+                }, 2500);
+
+            } catch (err) {
+                console.warn('Camera not available, simulating scan...');
+                statusEl.innerHTML = '<div class="pulse"></div> 📱 Camera unavailable — simulating scan...';
+
+                setTimeout(() => {
+                    statusEl.innerHTML = '<div class="pulse" style="background: var(--green-500);"></div> ✅ QR Code detected!';
+                    setTimeout(() => {
+                        closeScan();
+                        processCheckInOut();
+                    }, 800);
+                }, 2000);
+            }
+        }
+
+        function closeScan() {
+            const overlay = document.getElementById('cameraOverlay');
+            overlay.classList.remove('active');
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(t => t.stop());
+                cameraStream = null;
+            }
+        }
+
+        function processCheckInOut() {
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            const todayRecord = records.find(r => r.date === today && r.staffEmail === user.email);
+
+            if (!todayRecord) {
+                // CHECK IN
+                const isLate = now.getHours() >= 9;
+                records.unshift({
+                    date: today,
+                    staffEmail: user.email,
+                    staffName: user.fullName,
+                    location: user.location,
+                    checkIn: timeStr,
+                    checkOut: null,
+                    hoursWorked: 0,
+                    status: isLate ? 'LATE' : 'ON_TIME',
+                    method: 'QR_SCAN',
+                    staffType: user.staffType
+                });
+                localStorage.setItem('attendance_records', JSON.stringify(records));
+
+                showCheckedIn(timeStr);
+                showToast('✅ Checked in at ' + timeStr, 'success');
+
+            } else if (!todayRecord.checkOut) {
+                // CHECK OUT
+                todayRecord.checkOut = timeStr;
+                const [ch, cm] = todayRecord.checkIn.split(':').map(Number);
+                const hoursWorked = (now.getHours() * 60 + now.getMinutes() - ch * 60 - cm) / 60;
+                todayRecord.hoursWorked = Math.round(hoursWorked * 10) / 10;
+
+                localStorage.setItem('attendance_records', JSON.stringify(records));
+
+                if (timerInterval) clearInterval(timerInterval);
+                showCheckedOut(todayRecord);
+                showToast('🔴 Checked out at ' + timeStr + ' — ' + todayRecord.hoursWorked + ' hours', 'info');
+            }
+
+            loadMonthlyStats();
+            loadRecentActivity();
+        }
+
+        // ── Monthly Stats ──
+        function loadMonthlyStats() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            // Filter to user
+            const monthRecords = records.filter(r => {
+                if (r.staffEmail !== user.email) return false;
+                const d = new Date(r.date);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+
+            const daysWorked = monthRecords.filter(r => r.checkOut).length;
+            const lateCount = monthRecords.filter(r => r.status === 'LATE').length;
+
+            document.getElementById('statDaysWorked').textContent = daysWorked;
+            document.getElementById('statLate').textContent = lateCount;
+
+            // Leave stats - fully approved only
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const myLeaves = leaves.filter(l => l.staffEmail === user.email && l.status === 'APPROVED');
+            
+            const annualUsed = myLeaves.filter(l => l.type === 'ANNUAL').reduce((sum, l) => sum + l.days, 0);
+            const medicalUsed = myLeaves.filter(l => l.type === 'SICK').reduce((sum, l) => sum + l.days, 0);
+
+            document.getElementById('statAnnual').textContent = annualUsed;
+            document.getElementById('statAnnualTotal').textContent = `of 14 days`;
+            document.getElementById('statMedical').textContent = medicalUsed;
+            document.getElementById('statMedicalTotal').textContent = `of 12 days`;
+        }
+
+        // ── Recent Activity Table ──
+        function loadRecentActivity() {
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            // Filter to user
+            const recent = records
+                .filter(r => r.staffEmail === user.email)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 7);
+                
+            const tbody = document.getElementById('recentActivityBody');
+
+            if (recent.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 32px; color: var(--text-muted);">No attendance records yet. Scan QR to check in! 📷</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = recent.map(r => {
+                const dateObj = new Date(r.date + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                const statusBadge = r.status === 'LATE'
+                    ? '<span class="badge amber">⚠ Late</span>'
+                    : '<span class="badge green">✓ On Time</span>';
+                return `
+                    <tr>
+                        <td><strong>${dateStr}</strong></td>
+                        <td>${r.checkIn || '—'}</td>
+                        <td>${r.checkOut || '<span style="color: var(--text-muted);">—</span>'}</td>
+                        <td>${r.hoursWorked ? r.hoursWorked + ' hrs' : '—'}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── Toast ──
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'floating-toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ── Init ──
+        updateSidebar();
+        updateDateDisplay();
+        loadTodayState();
+        loadMonthlyStats();
+        loadRecentActivity();
     </script>
 </body>
 </html>

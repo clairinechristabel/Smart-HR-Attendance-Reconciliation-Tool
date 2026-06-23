@@ -1,645 +1,317 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart HR Management</title>
-    <meta name="description" content="Smart HR Management Attendance & Reconciliation System">
-    <link rel="stylesheet" href="styles.css">
+    <title>Food Angel — Staff Portal</title>
+    <meta name="description" content="Food Angel Staff Attendance & Leave Management System">
+    <link rel="stylesheet" href="styles.css?v=2">
     <style>
-        /* ── Full-page hero background ──────────────────────── */
-        body {
-            background: none;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding: 0;
-            overflow-x: hidden;
-        }
-
-        .hero-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            background: url('bg.png') center center / cover no-repeat;
-        }
-
-        .hero-bg::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg,
-                    rgba(16, 42, 32, 0.55) 0%,
-                    rgba(10, 30, 22, 0.7) 50%,
-                    rgba(6, 20, 14, 0.85) 100%);
-        }
-
-        /* ── Top Navbar ─────────────────────────────────────── */
-        .top-nav {
-            position: relative;
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 32px;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .top-nav .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-        .top-nav .nav-logo {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--green-500), #14b8a6);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .top-nav .nav-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .top-nav .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .btn-nav {
-            font-size: 13px;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all var(--transition);
-            border: none;
-        }
-
-        .btn-login {
-            background: transparent;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .btn-login:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-register {
-            background: var(--green-500);
-            color: white;
-        }
-
-        .btn-register:hover {
-            background: var(--green-600);
-        }
-
-        /* ── Hero Content ───────────────────────────────────── */
-        .hero-content {
-            position: relative;
-            z-index: 10;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 60px 48px 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .hero-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: var(--radius-full);
-            font-size: 12px;
-            font-weight: 600;
-            color: #6ee7b7;
-            width: fit-content;
-            margin-bottom: 20px;
-            backdrop-filter: blur(8px);
-        }
-
-        .hero-title {
-            font-size: 44px;
-            font-weight: 800;
-            color: white;
-            letter-spacing: -1.5px;
-            line-height: 1.15;
-            margin-bottom: 14px;
-            max-width: 600px;
-        }
-
-        .hero-subtitle {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.6);
-            max-width: 520px;
-            line-height: 1.6;
-            margin-bottom: 44px;
-        }
-
-        /* ── Feature Cards Row ──────────────────────────────── */
-        .feature-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            max-width: 840px;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            cursor: pointer;
-            transition: all var(--transition);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            text-decoration: none;
-            color: var(--text-primary);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 1);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .feature-card::after {
-            content: '🔒 Login Required';
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--amber-600);
-            background: var(--amber-50);
-            padding: 4px 8px;
-            border-radius: var(--radius-sm);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .feature-card:hover::after {
-            opacity: 1;
-        }
-
-        .feature-card .fc-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            margin-bottom: 14px;
-        }
-
-        .feature-card:nth-child(1) .fc-icon { background: var(--green-50); }
-        .feature-card:nth-child(2) .fc-icon { background: var(--blue-50); }
-        .feature-card:nth-child(3) .fc-icon { background: var(--amber-50); }
-
-        .feature-card .fc-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-
-        .feature-card .fc-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        /* ── Footer ─────────────────────────────────────────── */
-        .hero-footer {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            padding: 20px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.35);
-        }
-
-        /* ── Modal CSS ──────────────────────────────────────── */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: var(--bg-white);
-            border-radius: var(--radius-xl);
-            padding: 36px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.2);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
-            position: relative;
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-        }
-
-        .modal-close:hover {
-            background: var(--bg-page);
-            color: var(--text-primary);
-        }
-
-        .modal-header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .modal-header h2 {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .modal-header p {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            font-family: inherit;
-            font-size: 14px;
-            color: var(--text-primary);
-            background: var(--bg-input);
-            transition: all var(--transition);
-            outline: none;
-        }
-
-        .form-control:focus {
-            border-color: var(--green-500);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
-        }
-
-        .role-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .role-option {
-            border: 2px solid var(--border-light);
-            border-radius: var(--radius-lg);
-            padding: 14px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition);
-        }
-
-        .role-option:hover {
-            border-color: var(--green-200);
-            background: var(--green-50);
-        }
-
-        .role-option.selected {
-            border-color: var(--green-500);
-            background: var(--green-50);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-        }
-
-        .role-option .role-icon {
-            font-size: 24px;
-            margin-bottom: 6px;
-        }
-
-        .role-option .role-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .modal-footer-text {
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 20px;
-        }
-
-        .modal-footer-text a {
-            color: var(--green-600);
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .modal-footer-text a:hover {
-            text-decoration: underline;
-        }
-
-        /* ── Responsive ─────────────────────────────────────── */
-        @media (max-width: 768px) {
-            .hero-content { padding: 40px 24px 30px; }
-            .hero-title { font-size: 30px; }
-            .feature-cards { grid-template-columns: 1fr; max-width: 400px; }
-            .top-nav { padding: 14px 20px; }
-        }
+        body { background: none; display: flex; flex-direction: column; min-height: 100vh; padding: 0; overflow-x: hidden; }
+        .hero-bg { position: fixed; inset: 0; z-index: 0; background: url('bg.png') center center / cover no-repeat; }
+        .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16,42,32,0.55) 0%, rgba(10,30,22,0.7) 50%, rgba(6,20,14,0.85) 100%); }
+        .login-page { position: relative; z-index: 10; flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+        .login-card { background: rgba(255,255,255,0.97); backdrop-filter: blur(20px); border-radius: 20px; padding: 48px 40px; width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+        .login-logo .logo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--green-500), #14b8a6); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .login-logo .logo-text { display: flex; flex-direction: column; }
+        .login-logo .logo-name { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+        .login-logo .logo-sub { font-size: 12px; color: var(--text-secondary); }
+        .login-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+        .login-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 28px; }
+        .login-error { display: none; padding: 12px 16px; background: var(--red-50); color: var(--red-600); border: 1px solid var(--red-100); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; margin-bottom: 16px; }
+        .login-error.visible { display: block; }
+        .credential-hints { margin-top: 24px; padding: 16px; background: var(--bg-body); border-radius: var(--radius-md); border: 1px solid var(--border-light); }
+        .credential-hints .hint-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        .credential-hints .hint-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; }
+        .credential-hints .hint-role { font-weight: 600; color: var(--text-secondary); }
+        .credential-hints .hint-cred { font-family: 'Courier New', monospace; color: var(--text-primary); font-weight: 600; font-size: 11px; }
+        .hero-footer { position: relative; z-index: 10; text-align: center; padding: 20px; font-size: 12px; color: rgba(255,255,255,0.35); }
     </style>
 </head>
-
 <body>
-
-    <!-- Background Image -->
     <div class="hero-bg"></div>
-
-    <!-- Top Navigation -->
-    <nav class="top-nav">
-        <a href="#" class="nav-brand">
-            <div class="nav-logo">📊</div>
-            <span class="nav-name">Smart HR Management</span>
-        </a>
-        <div class="nav-links">
-            <button class="btn-nav btn-login" onclick="openModal('login')">Login</button>
-            <button class="btn-nav btn-register" onclick="openModal('register')">Register</button>
-        </div>
-    </nav>
-
-    <!-- Hero Content -->
-    <div class="hero-content">
-        <div class="hero-tag">✦ Smart HR Management</div>
-
-        <h1 class="hero-title">HR Attendance &<br>Reconciliation System</h1>
-
-        <p class="hero-subtitle">
-            Automated attendance tracking, leave management, and payroll reconciliation — built for Smart HR Management's
-            workforce of 200+ staff and volunteers.
-        </p>
-
-        <div class="feature-cards">
-            <div class="feature-card" onclick="openModal('login')">
-                <div class="fc-icon">👤</div>
-                <div class="fc-title">Staff Portal</div>
-                <div class="fc-desc">View attendance, submit leave requests, and track working hours.</div>
-            </div>
-            <div class="feature-card" onclick="openModal('login')">
-                <div class="fc-icon">🔍</div>
-                <div class="fc-title">HR Reconciliation</div>
-                <div class="fc-desc">Upload Excel files and auto-detect discrepancies across all locations.</div>
-            </div>
-            <div class="feature-card" onclick="openModal('login')">
-                <div class="fc-icon">📊</div>
-                <div class="fc-title">Reports & Payroll</div>
-                <div class="fc-desc">Export summaries for payroll and finance team review.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="hero-footer">
-        © 2026 Smart HR Management · Powered by Smart HR System
-    </div>
-
-    <!-- ══════════ MODAL OVERLAY ══════════ -->
-    <div class="modal-overlay" id="authModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">✕</button>
-            
-            <div class="modal-header">
-                <h2 id="modalTitle">Welcome Back</h2>
-                <p id="modalSubtitle">Please sign in to access your portal</p>
-            </div>
-
-            <!-- Role Selection (Only shown for Login to determine where to route) -->
-            <div id="roleSelection" class="role-grid">
-                <div class="role-option" id="roleStaff" onclick="selectRole('staff')">
-                    <div class="role-icon">👤</div>
-                    <div class="role-name">Staff</div>
-                </div>
-                <div class="role-option" id="roleHr" onclick="selectRole('hr')">
-                    <div class="role-icon">🛡️</div>
-                    <div class="role-name">HR Admin</div>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="logo-icon">🍽️</div>
+                <div class="logo-text">
+                    <span class="logo-name">Food Angel</span>
+                    <span class="logo-sub">HR Attendance & Reconciliation</span>
                 </div>
             </div>
-
-            <div class="form-group" id="nameGroup" style="display: none;">
-                <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" class="form-control" placeholder="John Doe">
-            </div>
-
+            <div class="login-title">Welcome Back 👋</div>
+            <p class="login-subtitle">Sign in to access the HR management portal</p>
+            <div class="login-error" id="loginError"></div>
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" class="form-control" placeholder="you@smarthr.com" value="admin@smarthr.com">
+                <input type="email" id="email" class="form-input" placeholder="you@foodangel.hk" autofocus>
             </div>
-
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" class="form-control" placeholder="••••••••" value="password123">
+                <input type="password" id="password" class="form-input" placeholder="••••••••">
             </div>
-
-            <button class="btn btn-success" style="width: 100%; margin-top: 8px; padding: 12px;" id="submitBtn" onclick="handleSubmit()">
-                Sign In
-            </button>
-
-            <div class="modal-footer-text" id="modalToggleText">
-                Don't have an account? <a href="#" onclick="openModal('register'); return false;">Register here</a>
+            <button class="btn btn-success" style="width:100%;margin-top:8px;padding:14px;font-size:15px;" id="loginBtn" onclick="handleLogin()">Sign In</button>
+            <div class="credential-hints">
+                <div class="hint-title">🔑 Demo Credentials</div>
+                <div class="hint-row"><span class="hint-role">👤 Staff (FT)</span><span class="hint-cred">lisa.chan@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role">👤 Staff (PT)</span><span class="hint-cred">amy.cheung@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role">🙋 Volunteer</span><span class="hint-cred">wing.ho@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role">👷 Supervisor</span><span class="hint-cred">david.wong@foodangel.hk / 1234</span></div>
+                <div class="hint-row"><span class="hint-role">🛡️ HR Admin</span><span class="hint-cred">admin@foodangel.hk / admin</span></div>
             </div>
         </div>
     </div>
+    <div class="hero-footer">© 2026 Food Angel · HR Attendance & Reconciliation System</div>
 
     <script>
-        let currentMode = 'login';
-        let selectedRole = null;
-        const API_URL = 'http://localhost:8080/api/v1/auth';
+        // ══════════════════════════════════════════════════════
+        // COMPLETE USER DATABASE
+        // ══════════════════════════════════════════════════════
+        const LOCATIONS = ['Sham Shui Po Factory', 'Sha Tin Hub', 'Kwai Chung Warehouse', 'Kwun Tong Retail'];
 
-        function openModal(mode) {
-            currentMode = mode;
-            const modal = document.getElementById('authModal');
-            const title = document.getElementById('modalTitle');
-            const subtitle = document.getElementById('modalSubtitle');
-            const submitBtn = document.getElementById('submitBtn');
-            const toggleText = document.getElementById('modalToggleText');
-            const roleSelection = document.getElementById('roleSelection');
-            const nameGroup = document.getElementById('nameGroup');
-
-            if (mode === 'login') {
-                title.textContent = 'Welcome Back';
-                subtitle.textContent = 'Please sign in to access your portal';
-                submitBtn.textContent = 'Sign In';
-                toggleText.innerHTML = `Don't have an account? <a href="#" onclick="openModal('register'); return false;">Register here</a>`;
-                // Show role selection in register, not login anymore since DB knows the role. Wait, let's keep it in login if we want to visually guide them, but we don't strictly need it.
-                // Let's hide role selection in login, show in register.
-                roleSelection.style.display = 'none';
-                nameGroup.style.display = 'none';
-            } else {
-                title.textContent = 'Create an Account';
-                subtitle.textContent = 'Register to join Smart HR Management';
-                submitBtn.textContent = 'Create Account';
-                toggleText.innerHTML = `Already have an account? <a href="#" onclick="openModal('login'); return false;">Sign in here</a>`;
-                roleSelection.style.display = 'grid';
-                nameGroup.style.display = 'block';
+        const USERS = {
+            'lisa.chan@foodangel.hk': {
+                password: '1234', fullName: 'Lisa Chan', email: 'lisa.chan@foodangel.hk',
+                employeeId: 'FA-0142', role: 'STAFF', staffType: 'FULL_TIME',
+                department: 'Kitchen Operations', position: 'Kitchen Helper',
+                joinDate: '2024-03-15', location: 'Sham Shui Po Factory',
+                phone: '+852 9123 4567', supervisorEmail: 'david.wong@foodangel.hk'
+            },
+            'mark.lee@foodangel.hk': {
+                password: '1234', fullName: 'Mark Lee', email: 'mark.lee@foodangel.hk',
+                employeeId: 'FA-0088', role: 'STAFF', staffType: 'FULL_TIME',
+                department: 'Production', position: 'Line Worker',
+                joinDate: '2023-08-01', location: 'Sha Tin Hub',
+                phone: '+852 9222 3344', supervisorEmail: 'kelly.lam@foodangel.hk'
+            },
+            'peter.ho@foodangel.hk': {
+                password: '1234', fullName: 'Peter Ho', email: 'peter.ho@foodangel.hk',
+                employeeId: 'FA-0201', role: 'STAFF', staffType: 'FULL_TIME',
+                department: 'Logistics', position: 'Driver',
+                joinDate: '2025-01-10', location: 'Kwai Chung Warehouse',
+                phone: '+852 9555 6677', supervisorEmail: 'david.wong@foodangel.hk'
+            },
+            'amy.cheung@foodangel.hk': {
+                password: '1234', fullName: 'Amy Cheung', email: 'amy.cheung@foodangel.hk',
+                employeeId: 'FA-0310', role: 'STAFF', staffType: 'PART_TIME',
+                department: 'Warehouse', position: 'Packing Assistant',
+                joinDate: '2025-06-01', location: 'Kwai Chung Warehouse',
+                phone: '+852 9333 4455', hourlyRate: 65, supervisorEmail: 'david.wong@foodangel.hk'
+            },
+            'tom.ng@foodangel.hk': {
+                password: '1234', fullName: 'Tom Ng', email: 'tom.ng@foodangel.hk',
+                employeeId: 'FA-0315', role: 'STAFF', staffType: 'PART_TIME',
+                department: 'Retail', position: 'Shop Assistant',
+                joinDate: '2025-04-20', location: 'Kwun Tong Retail',
+                phone: '+852 9444 5566', hourlyRate: 60, supervisorEmail: 'kelly.lam@foodangel.hk'
+            },
+            'wing.ho@foodangel.hk': {
+                password: '1234', fullName: 'Wing Ho', email: 'wing.ho@foodangel.hk',
+                employeeId: 'VOL-0501', role: 'STAFF', staffType: 'VOLUNTEER',
+                department: 'Community Service', position: 'Volunteer',
+                joinDate: '2026-01-15', location: 'Sham Shui Po Factory',
+                phone: '+852 9666 7788', supervisorEmail: 'david.wong@foodangel.hk'
+            },
+            'jenny.yip@foodangel.hk': {
+                password: '1234', fullName: 'Jenny Yip', email: 'jenny.yip@foodangel.hk',
+                employeeId: 'VOL-0502', role: 'STAFF', staffType: 'VOLUNTEER',
+                department: 'Community Service', position: 'Volunteer',
+                joinDate: '2026-03-01', location: 'Sha Tin Hub',
+                phone: '+852 9777 8899', supervisorEmail: 'kelly.lam@foodangel.hk'
+            },
+            'david.wong@foodangel.hk': {
+                password: '1234', fullName: 'David Wong', email: 'david.wong@foodangel.hk',
+                employeeId: 'FA-0025', role: 'SUPERVISOR', staffType: 'FULL_TIME',
+                department: 'Operations', position: 'Kitchen Supervisor',
+                joinDate: '2022-06-01', location: 'Sham Shui Po Factory',
+                phone: '+852 9111 2233',
+                managedLocations: ['Sham Shui Po Factory', 'Kwai Chung Warehouse']
+            },
+            'kelly.lam@foodangel.hk': {
+                password: '1234', fullName: 'Kelly Lam', email: 'kelly.lam@foodangel.hk',
+                employeeId: 'FA-0030', role: 'SUPERVISOR', staffType: 'FULL_TIME',
+                department: 'Operations', position: 'Hub Supervisor',
+                joinDate: '2023-01-15', location: 'Sha Tin Hub',
+                phone: '+852 9888 9900',
+                managedLocations: ['Sha Tin Hub', 'Kwun Tong Retail']
+            },
+            'admin@foodangel.hk': {
+                password: 'admin', fullName: 'Sarah Au', email: 'admin@foodangel.hk',
+                employeeId: 'FA-0001', role: 'HR_ADMIN', staffType: 'FULL_TIME',
+                department: 'Human Resources', position: 'HR Manager',
+                joinDate: '2022-01-10', location: 'Head Office',
+                phone: '+852 9876 5432'
             }
+        };
 
-            // Reset form
-            document.getElementById('password').value = '';
-            
-            modal.classList.add('active');
-        }
+        const ALL_STAFF = Object.values(USERS).filter(u => u.role !== 'HR_ADMIN');
 
-        function closeModal() {
-            document.getElementById('authModal').classList.remove('active');
-        }
-
-        function selectRole(role) {
-            selectedRole = role;
-            document.getElementById('roleStaff').classList.toggle('selected', role === 'staff');
-            document.getElementById('roleHr').classList.toggle('selected', role === 'hr');
-        }
-
-        async function handleSubmit() {
-            const email = document.getElementById('email').value;
+        function handleLogin() {
+            const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value;
-            const submitBtn = document.getElementById('submitBtn');
+            const errorEl = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
 
-            if (!email || !password) {
-                alert("Please fill in all fields");
-                return;
+            if (!email || !password) { errorEl.textContent = 'Please enter email and password.'; errorEl.classList.add('visible'); return; }
+            const user = USERS[email];
+            if (!user || user.password !== password) { errorEl.textContent = 'Invalid email or password. Try the demo credentials below.'; errorEl.classList.add('visible'); return; }
+
+            errorEl.classList.remove('visible');
+            btn.textContent = 'Signing in...';
+            btn.disabled = true;
+
+            const userData = { ...user };
+            delete userData.password;
+            localStorage.setItem('user', JSON.stringify(userData));
+
+            // Store all staff list for cross-page reference
+            const allStaffData = Object.values(USERS).map(u => { const d = {...u}; delete d.password; return d; });
+            localStorage.setItem('all_staff', JSON.stringify(allStaffData));
+
+            // Seed sample data if first time
+            if (!localStorage.getItem('data_seeded')) {
+                seedAllSampleData();
+                localStorage.setItem('data_seeded', 'true');
             }
 
-            // UI Loading state
-            submitBtn.textContent = 'Processing...';
-            submitBtn.disabled = true;
-
-            try {
-                if (currentMode === 'login') {
-                    const res = await fetch(`${API_URL}/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                    });
-                    const data = await res.json();
-                    
-                    if (data.success) {
-                        // Store user info in localStorage
-                        localStorage.setItem('user', JSON.stringify(data.user));
-                        
-                        // Navigate based on role from DB
-                        if (data.user.role === 'HR_ADMIN') {
-                            window.location.href = 'hr-dashboard.html';
-                        } else {
-                            window.location.href = 'staff-dashboard.html';
-                        }
-                    } else {
-                        alert("Login Failed: " + data.message);
-                    }
-                } else {
-                    // Register
-                    if (!selectedRole) {
-                        alert('Please select your role first (Staff or HR Admin).');
-                        submitBtn.textContent = 'Create Account';
-                        submitBtn.disabled = false;
-                        return;
-                    }
-                    const fullName = document.getElementById('fullName').value;
-                    const roleEnum = selectedRole === 'hr' ? 'HR_ADMIN' : 'LABORER';
-
-                    const res = await fetch(`${API_URL}/register`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password, fullName, role: roleEnum })
-                    });
-                    const data = await res.json();
-
-                    if (data.success) {
-                        alert(data.message);
-                        if (data.message.includes("approval")) {
-                            // Close modal if pending approval
-                            closeModal();
-                        } else {
-                            openModal('login');
-                        }
-                    } else {
-                        alert("Registration Failed: " + data.message);
-                    }
-                }
-            } catch (err) {
-                alert("Server error. Please try again later.");
-                console.error(err);
-            } finally {
-                submitBtn.textContent = currentMode === 'login' ? 'Sign In' : 'Create Account';
-                submitBtn.disabled = false;
-            }
+            setTimeout(() => {
+                if (user.role === 'HR_ADMIN') window.location.href = 'hr-dashboard.html';
+                else if (user.role === 'SUPERVISOR') window.location.href = 'supervisor-dashboard.html';
+                else window.location.href = 'staff-dashboard.html';
+            }, 500);
         }
 
-        // Close modal if clicked outside
-        document.getElementById('authModal').addEventListener('click', (e) => {
-            if (e.target.id === 'authModal') {
-                closeModal();
-            }
-        });
+        function seedAllSampleData() {
+            const today = new Date();
+            const records = [];
+            const staffEmails = Object.keys(USERS).filter(e => USERS[e].role !== 'HR_ADMIN');
+
+            staffEmails.forEach(email => {
+                const user = USERS[email];
+                const isVolunteer = user.staffType === 'VOLUNTEER';
+                const isPT = user.staffType === 'PART_TIME';
+                const daysToGenerate = isVolunteer ? 8 : 20;
+
+                let date = new Date(today);
+                let generated = 0;
+                while (generated < daysToGenerate) {
+                    date.setDate(date.getDate() - 1);
+                    if (date.getDay() === 0 || date.getDay() === 6) continue;
+                    if (isVolunteer && Math.random() < 0.4) { generated++; continue; }
+
+                    const dateStr = date.toISOString().split('T')[0];
+                    const isLate = Math.random() < 0.12;
+                    const baseHour = isPT ? 10 + Math.floor(Math.random() * 3) : (isLate ? 9 + Math.floor(Math.random() * 1) : 7 + Math.floor(Math.random() * 2));
+                    const baseMin = Math.floor(Math.random() * 60);
+                    const hoursWorked = isPT ? 4 + Math.random() * 3 : (isVolunteer ? 3 + Math.random() * 4 : 7.5 + Math.random() * 2);
+                    const outHour = baseHour + Math.floor(hoursWorked);
+                    const outMin = Math.floor((hoursWorked % 1) * 60);
+
+                    records.push({
+                        date: dateStr,
+                        staffEmail: email,
+                        staffName: user.fullName,
+                        location: user.location,
+                        checkIn: `${String(baseHour).padStart(2,'0')}:${String(baseMin).padStart(2,'0')}`,
+                        checkOut: `${String(outHour).padStart(2,'0')}:${String(outMin).padStart(2,'0')}`,
+                        hoursWorked: Math.round(hoursWorked * 10) / 10,
+                        status: isLate ? 'LATE' : 'ON_TIME',
+                        method: 'QR_SCAN',
+                        staffType: user.staffType
+                    });
+                    generated++;
+                }
+            });
+
+            localStorage.setItem('attendance_records', JSON.stringify(records));
+
+            // ── Seed leave requests (with multi-level approval) ──
+            const leaves = [
+                {
+                    id: 'LR-001', type: 'ANNUAL', startDate: '2026-06-12', endDate: '2026-06-12', days: 1,
+                    reason: 'Family event', attachment: null, attachmentName: null,
+                    status: 'APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'APPROVED',
+                    submittedAt: '2026-06-10T09:30:00', staffName: 'Lisa Chan', staffEmail: 'lisa.chan@foodangel.hk',
+                    staffLocation: 'Sham Shui Po Factory'
+                },
+                {
+                    id: 'LR-002', type: 'SICK', startDate: '2026-06-05', endDate: '2026-06-06', days: 2,
+                    reason: 'Doctor appointment + rest', attachment: null, attachmentName: 'doctor_note.jpg',
+                    status: 'APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'N/A',
+                    submittedAt: '2026-06-04T14:00:00', staffName: 'Lisa Chan', staffEmail: 'lisa.chan@foodangel.hk',
+                    staffLocation: 'Sham Shui Po Factory'
+                },
+                {
+                    id: 'LR-003', type: 'ANNUAL', startDate: '2026-06-25', endDate: '2026-06-27', days: 3,
+                    reason: 'Holiday trip', attachment: null, attachmentName: null,
+                    status: 'PENDING', supervisorApproval: 'PENDING', hrApproval: 'PENDING',
+                    submittedAt: '2026-06-20T10:00:00', staffName: 'Mark Lee', staffEmail: 'mark.lee@foodangel.hk',
+                    staffLocation: 'Sha Tin Hub'
+                },
+                {
+                    id: 'LR-004', type: 'SICK', startDate: '2026-06-18', endDate: '2026-06-18', days: 1,
+                    reason: 'Feeling unwell', attachment: null, attachmentName: null,
+                    status: 'SUPERVISOR_APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'N/A',
+                    submittedAt: '2026-06-18T08:00:00', staffName: 'Peter Ho', staffEmail: 'peter.ho@foodangel.hk',
+                    staffLocation: 'Kwai Chung Warehouse'
+                },
+                {
+                    id: 'LR-005', type: 'PERSONAL', startDate: '2026-06-30', endDate: '2026-06-30', days: 1,
+                    reason: 'Bank appointment', attachment: null, attachmentName: null,
+                    status: 'PENDING', supervisorApproval: 'PENDING', hrApproval: 'PENDING',
+                    submittedAt: '2026-06-22T11:00:00', staffName: 'Lisa Chan', staffEmail: 'lisa.chan@foodangel.hk',
+                    staffLocation: 'Sham Shui Po Factory'
+                },
+                {
+                    id: 'LR-006', type: 'COMPASSIONATE', startDate: '2026-06-16', endDate: '2026-06-17', days: 2,
+                    reason: 'Family bereavement', attachment: null, attachmentName: null,
+                    status: 'APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'APPROVED',
+                    submittedAt: '2026-06-15T09:00:00', staffName: 'Mark Lee', staffEmail: 'mark.lee@foodangel.hk',
+                    staffLocation: 'Sha Tin Hub'
+                },
+                {
+                    id: 'LR-007', type: 'UNPAID', startDate: '2026-07-01', endDate: '2026-07-02', days: 2,
+                    reason: 'Personal matter', attachment: null, attachmentName: null,
+                    status: 'SUPERVISOR_APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'PENDING',
+                    submittedAt: '2026-06-21T15:00:00', staffName: 'Amy Cheung', staffEmail: 'amy.cheung@foodangel.hk',
+                    staffLocation: 'Kwai Chung Warehouse'
+                },
+                {
+                    id: 'LR-008', type: 'MATERNITY', startDate: '2026-08-01', endDate: '2026-10-24', days: 60,
+                    reason: 'Maternity leave', attachment: null, attachmentName: 'medical_cert.pdf',
+                    status: 'SUPERVISOR_APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'PENDING',
+                    submittedAt: '2026-06-20T10:00:00', staffName: 'Jenny Yip', staffEmail: 'jenny.yip@foodangel.hk',
+                    staffLocation: 'Sha Tin Hub'
+                }
+            ];
+            localStorage.setItem('leave_requests', JSON.stringify(leaves));
+
+            // ── Seed medical claims ──
+            const claims = [
+                { id: 'MC-001', staffEmail: 'lisa.chan@foodangel.hk', staffName: 'Lisa Chan', date: '2026-06-05', amount: 350, category: 'General Practitioner', receipt: null, receiptName: 'receipt_gp.jpg', notes: 'Flu consultation', status: 'APPROVED', submittedAt: '2026-06-06T09:00:00' },
+                { id: 'MC-002', staffEmail: 'mark.lee@foodangel.hk', staffName: 'Mark Lee', date: '2026-06-15', amount: 800, category: 'Specialist', receipt: null, receiptName: 'specialist_receipt.jpg', notes: 'Knee follow-up', status: 'PENDING', submittedAt: '2026-06-16T10:00:00' },
+                { id: 'MC-003', staffEmail: 'peter.ho@foodangel.hk', staffName: 'Peter Ho', date: '2026-06-10', amount: 200, category: 'Chinese Medicine', receipt: null, receiptName: null, notes: 'Back pain treatment', status: 'APPROVED', submittedAt: '2026-06-11T14:00:00' },
+                { id: 'MC-004', staffEmail: 'amy.cheung@foodangel.hk', staffName: 'Amy Cheung', date: '2026-06-20', amount: 450, category: 'Dental', receipt: null, receiptName: 'dental_receipt.pdf', notes: 'Wisdom tooth extraction', status: 'PENDING', submittedAt: '2026-06-21T09:00:00' },
+                { id: 'MC-005', staffEmail: 'lisa.chan@foodangel.hk', staffName: 'Lisa Chan', date: '2026-05-28', amount: 180, category: 'General Practitioner', receipt: null, receiptName: null, notes: 'Cold & flu', status: 'APPROVED', submittedAt: '2026-05-29T10:00:00' }
+            ];
+            localStorage.setItem('medical_claims', JSON.stringify(claims));
+
+            // ── Seed reconciliation runs ──
+            localStorage.setItem('reconciliation_runs', JSON.stringify([]));
+        }
+
+        document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+        document.getElementById('email').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('password').focus(); });
+
+        // Auto-redirect if logged in
+        const existingUser = localStorage.getItem('user');
+        if (existingUser) {
+            const u = JSON.parse(existingUser);
+            if (u.role === 'HR_ADMIN') window.location.href = 'hr-dashboard.html';
+            else if (u.role === 'SUPERVISOR') window.location.href = 'supervisor-dashboard.html';
+            else window.location.href = 'staff-dashboard.html';
+        }
     </script>
-
 </body>
-
 </html>

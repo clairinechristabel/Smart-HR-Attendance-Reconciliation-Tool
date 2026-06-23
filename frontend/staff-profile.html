@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — Food Angel Staff Portal</title>
+    <meta name="description" content="Staff profile with personal info, monthly attendance report, and full attendance log">
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- ══════════ SIDEBAR ══════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">🍽️</div>
+                <div class="brand-text">
+                    <span class="brand-name">Food Angel</span>
+                    <span class="brand-sub">Staff Portal</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Menu</div>
+                <a href="staff-dashboard.html" class="sidebar-link">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="staff-leave.html" class="sidebar-link">
+                    <span class="nav-icon">📝</span> Leave Request
+                </a>
+                <a href="staff-profile.html" class="sidebar-link active">
+                    <span class="nav-icon">👤</span> My Profile
+                </a>
+
+                <div class="sidebar-section-label">Account</div>
+                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </a>
+            </nav>
+
+            <div class="sidebar-user" style="cursor: pointer;" onclick="window.location.href='staff-profile.html'">
+                <div class="user-avatar" id="sidebarAvatar">LC</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Lisa Chan</div>
+                    <div class="user-role" id="sidebarRole">Kitchen Helper</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════ MAIN ══════════ -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">Staff Portal › <span>My Profile</span></div>
+                    <h1>My Profile</h1>
+                </div>
+            </div>
+
+            <div class="page-content">
+
+                <!-- ── Profile Header ─────────── -->
+                <div class="profile-header">
+                    <div class="profile-avatar-lg" id="profileAvatar">LC</div>
+                    <div class="profile-header-info">
+                        <div class="profile-name" id="profileName">Lisa Chan</div>
+                        <div class="profile-emp-id" id="profileEmpId">FA-0142</div>
+                        <div class="profile-badges">
+                            <span class="profile-badge role" id="badgeRole">🛡️ Staff</span>
+                            <span class="profile-badge type" id="badgeDept">🏢 Kitchen Operations</span>
+                            <span class="profile-badge active">✓ Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Personal Info + Monthly Report Grid ── -->
+                <div class="profile-grid">
+
+                    <!-- Personal Information -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>👤 Personal Information</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <div class="info-label"><span class="info-icon">📧</span> Email</div>
+                                <div class="info-value" id="infoEmail">lisa.chan@foodangel.hk</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label"><span class="info-icon">📱</span> Phone</div>
+                                <div class="info-value" id="infoPhone">+852 9123 4567</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label"><span class="info-icon">🆔</span> Employee ID</div>
+                                <div class="info-value" id="infoEmpId" style="font-family: 'Courier New', monospace;">FA-0142</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label"><span class="info-icon">🏢</span> Department</div>
+                                <div class="info-value" id="infoDept">Kitchen Operations</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label"><span class="info-icon">💼</span> Position</div>
+                                <div class="info-value" id="infoPosition">Kitchen Helper</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label"><span class="info-icon">📍</span> Location</div>
+                                <div class="info-value" id="infoLocation">Sham Shui Po Kitchen</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label"><span class="info-icon">📅</span> Join Date</div>
+                                <div class="info-value" id="infoJoinDate">Mar 15, 2024</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Attendance Report -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>📊 Monthly Report</h2>
+                            <select id="monthSelector" class="form-input" style="width: auto; padding: 6px 12px; font-size: 12px;" onchange="loadMonthlyReport()">
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        <div class="card-body">
+                            <!-- Attendance Ring -->
+                            <div class="progress-ring-container">
+                                <div class="progress-ring-wrap">
+                                    <svg viewBox="0 0 140 140">
+                                        <circle class="progress-ring-bg" cx="70" cy="70" r="58"></circle>
+                                        <circle class="progress-ring-fill" id="attendanceRing" cx="70" cy="70" r="58"
+                                            stroke-dasharray="364.42" stroke-dashoffset="364.42"></circle>
+                                    </svg>
+                                    <div class="progress-ring-text">
+                                        <div class="progress-ring-value" id="attendanceRate">0%</div>
+                                        <div class="progress-ring-label">Attendance</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mini Stats -->
+                            <div class="attendance-mini-stats">
+                                <div class="att-mini">
+                                    <div class="att-mini-value" style="color: var(--green-600);" id="rpDaysPresent">0</div>
+                                    <div class="att-mini-label">Days Present</div>
+                                </div>
+                                <div class="att-mini">
+                                    <div class="att-mini-value" style="color: var(--amber-600);" id="rpLateCount">0</div>
+                                    <div class="att-mini-label">Late Arrivals</div>
+                                </div>
+                                <div class="att-mini">
+                                    <div class="att-mini-value" style="color: var(--blue-600);" id="rpTotalHours">0</div>
+                                    <div class="att-mini-label">Total Hours</div>
+                                </div>
+                                <div class="att-mini">
+                                    <div class="att-mini-value" style="color: var(--teal-500);" id="rpAvgHours">0</div>
+                                    <div class="att-mini-label">Avg Hrs/Day</div>
+                                </div>
+                            </div>
+
+                            <!-- Leave Summary -->
+                            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-light);">
+                                <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px;">LEAVE BALANCE</div>
+                                <div class="leave-item">
+                                    <div class="leave-item-header">
+                                        <div class="leave-item-name">🌴 Annual Leave</div>
+                                        <div class="leave-item-count"><strong id="rpAnnualUsed">0</strong> of 14 used</div>
+                                    </div>
+                                    <div class="leave-bar-track">
+                                        <div class="leave-bar-fill green" id="rpAnnualBar" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+                                <div class="leave-item">
+                                    <div class="leave-item-header">
+                                        <div class="leave-item-name">🏥 Sick Leave</div>
+                                        <div class="leave-item-count"><strong id="rpMedicalUsed">0</strong> of 12 used</div>
+                                    </div>
+                                    <div class="leave-bar-track">
+                                        <div class="leave-bar-fill blue" id="rpMedicalBar" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+                                <div class="leave-item">
+                                    <div class="leave-item-header">
+                                        <div class="leave-item-name">⏳ Personal Leave</div>
+                                        <div class="leave-item-count"><strong id="rpPersonalUsed">0</strong> of 5 used</div>
+                                    </div>
+                                    <div class="leave-bar-track">
+                                        <div class="leave-bar-fill amber" id="rpPersonalBar" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Full Attendance Log ─────── -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Attendance Log</h2>
+                        <span class="badge green" style="font-size: 11px;" id="logMonthBadge">June 2026</span>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Day</th>
+                                        <th>Check In</th>
+                                        <th>Check Out</th>
+                                        <th>Hours</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceLogBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ── Auth guard ──
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user) window.location.href = 'index.html';
+
+        // ── Sidebar ──
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || user.department;
+        }
+
+        // ── Profile Header ──
+        function populateProfile() {
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('profileAvatar').textContent = initials;
+            document.getElementById('profileName').textContent = user.fullName;
+            document.getElementById('profileEmpId').textContent = user.employeeId;
+            document.getElementById('badgeRole').textContent = '🛡️ ' + (user.position || 'Staff');
+            document.getElementById('badgeDept').textContent = '🏢 ' + user.department;
+
+            document.getElementById('infoEmail').textContent = user.email;
+            document.getElementById('infoPhone').textContent = user.phone || '—';
+            document.getElementById('infoEmpId').textContent = user.employeeId;
+            document.getElementById('infoDept').textContent = user.department;
+            document.getElementById('infoPosition').textContent = user.position || '—';
+            document.getElementById('infoLocation').textContent = user.location || '—';
+
+            if (user.joinDate) {
+                const joinDate = new Date(user.joinDate + 'T00:00:00');
+                document.getElementById('infoJoinDate').textContent = joinDate.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                });
+            }
+        }
+
+        // ── Month Selector ──
+        function populateMonthSelector() {
+            const selector = document.getElementById('monthSelector');
+            const now = new Date();
+
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const opt = document.createElement('option');
+                opt.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                opt.textContent = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                selector.appendChild(opt);
+            }
+        }
+
+        // ── Monthly Report ──
+        function loadMonthlyReport() {
+            const selector = document.getElementById('monthSelector');
+            const [year, month] = selector.value.split('-').map(Number);
+
+            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            
+            // Filter to user AND selected month
+            const monthRecords = records.filter(r => {
+                if (r.staffEmail !== user.email) return false;
+                const d = new Date(r.date);
+                return d.getMonth() === month - 1 && d.getFullYear() === year;
+            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Stats
+            const daysPresent = monthRecords.filter(r => r.checkOut).length;
+            const lateCount = monthRecords.filter(r => r.status === 'LATE').length;
+            const totalHours = monthRecords.reduce((s, r) => s + (r.hoursWorked || 0), 0);
+            const avgHours = daysPresent > 0 ? (totalHours / daysPresent) : 0;
+
+            // Working days in month (approximate)
+            const daysInMonth = new Date(year, month, 0).getDate();
+            let workingDays = 0;
+            for (let d = 1; d <= daysInMonth; d++) {
+                const day = new Date(year, month - 1, d).getDay();
+                if (day !== 0 && day !== 6) workingDays++;
+            }
+
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === month - 1 && today.getFullYear() === year;
+            const effectiveWorkingDays = isCurrentMonth ? Math.min(workingDays, today.getDate()) : workingDays;
+
+            const attendanceRate = effectiveWorkingDays > 0 ? Math.round((daysPresent / effectiveWorkingDays) * 100) : 0;
+
+            // Update UI
+            document.getElementById('attendanceRate').textContent = attendanceRate + '%';
+            document.getElementById('rpDaysPresent').textContent = daysPresent;
+            document.getElementById('rpLateCount').textContent = lateCount;
+            document.getElementById('rpTotalHours').textContent = Math.round(totalHours);
+            document.getElementById('rpAvgHours').textContent = avgHours.toFixed(1);
+
+            // Animate ring
+            const circumference = 2 * Math.PI * 58;
+            const offset = circumference - (attendanceRate / 100) * circumference;
+            setTimeout(() => {
+                document.getElementById('attendanceRing').style.strokeDashoffset = offset;
+            }, 300);
+
+            // Leave balance (all time approved for the user)
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const myLeaves = leaves.filter(l => l.staffEmail === user.email && l.status === 'APPROVED');
+            
+            const annualUsed = myLeaves.filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
+            const medicalUsed = myLeaves.filter(l => l.type === 'SICK').reduce((s, l) => s + l.days, 0);
+            const personalUsed = myLeaves.filter(l => l.type === 'PERSONAL').reduce((s, l) => s + l.days, 0);
+
+            document.getElementById('rpAnnualUsed').textContent = annualUsed;
+            document.getElementById('rpMedicalUsed').textContent = medicalUsed;
+            document.getElementById('rpPersonalUsed').textContent = personalUsed;
+
+            setTimeout(() => {
+                document.getElementById('rpAnnualBar').style.width = `${(annualUsed / 14) * 100}%`;
+                document.getElementById('rpMedicalBar').style.width = `${(medicalUsed / 12) * 100}%`;
+                document.getElementById('rpPersonalBar').style.width = `${(personalUsed / 5) * 100}%`;
+            }, 500);
+
+            // Month badge
+            const monthName = new Date(year, month - 1).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+            document.getElementById('logMonthBadge').textContent = monthName;
+
+            // Attendance Log Table
+            const tbody = document.getElementById('attendanceLogBody');
+            if (monthRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No records for this month.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = monthRecords.map(r => {
+                const dateObj = new Date(r.date + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const dayStr = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+
+                const statusBadge = r.status === 'LATE'
+                    ? '<span class="badge amber">⚠ Late</span>'
+                    : '<span class="badge green">✓ On Time</span>';
+
+                return `
+                    <tr>
+                        <td><strong>${dateStr}</strong></td>
+                        <td>${dayStr}</td>
+                        <td>${r.checkIn || '—'}</td>
+                        <td>${r.checkOut || '<span style="color: var(--text-muted);">—</span>'}</td>
+                        <td>${r.hoursWorked ? r.hoursWorked + ' hrs' : '—'}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── Init ──
+        updateSidebar();
+        populateProfile();
+        populateMonthSelector();
+        loadMonthlyReport();
+    </script>
+</body>
+</html>

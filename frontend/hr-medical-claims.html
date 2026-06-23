@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Claims Tracker — Food Angel Admin</title>
+    <meta name="description" content="Self-insured medical claims tracker and reimbursement management">
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- ══════════ SIDEBAR ══════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">🍽️</div>
+                <div class="brand-text">
+                    <span class="brand-name">Food Angel</span>
+                    <span class="brand-sub">HR Admin</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Core</div>
+                <a href="hr-dashboard.html" class="sidebar-link">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="hr-reconciliation.html" class="sidebar-link">
+                    <span class="nav-icon">⚡</span> Reconciliation
+                </a>
+                <a href="hr-medical-claims.html" class="sidebar-link active">
+                    <span class="nav-icon">🏥</span> Medical Claims
+                </a>
+
+                <div class="sidebar-section-label">Account</div>
+                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </a>
+            </nav>
+
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebarAvatar">SA</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Sarah Au</div>
+                    <div class="user-role" id="sidebarRole">HR Manager</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════ MAIN ══════════ -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">HR Admin › <span>Medical Claims</span></div>
+                    <h1>Self-Insured Medical Claims Tracker</h1>
+                </div>
+                <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
+                    📅 June 2026
+                </div>
+            </div>
+
+            <div class="page-content">
+
+                <!-- ── Overview Stats ─────────── -->
+                <div class="claims-summary">
+                    <div class="claim-total-card" style="border-top: 4px solid var(--blue-500);">
+                        <div class="ct-label">Total Claims (YTD)</div>
+                        <div class="ct-value" id="statTotalClaims">0</div>
+                        <div class="ct-sub">across organization</div>
+                    </div>
+                    <div class="claim-total-card" style="border-top: 4px solid var(--amber-500);">
+                        <div class="ct-label">Pending Approval</div>
+                        <div class="ct-value" id="statPendingAmt" style="color: var(--amber-600);">$0</div>
+                        <div class="ct-sub" id="statPendingCount">0 claims waiting</div>
+                    </div>
+                    <div class="claim-total-card" style="border-top: 4px solid var(--green-500);">
+                        <div class="ct-label">Approved & Reimbursed</div>
+                        <div class="ct-value" id="statApprovedAmt" style="color: var(--green-600);">$0</div>
+                        <div class="ct-sub">paid out this year</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 350px 1fr; gap: 24px; margin-bottom: 24px;">
+                    
+                    <!-- ── New Claim Form ─────────── -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>➕ Log New Claim</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Staff Member</label>
+                                <select id="claimStaff" class="form-input">
+                                    <option value="">Select staff...</option>
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Claim Date</label>
+                                    <input type="date" id="claimDate" class="form-input">
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Amount (HKD)</label>
+                                    <input type="number" id="claimAmount" class="form-input" placeholder="0.00" min="0" step="0.01">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Category</label>
+                                <select id="claimCategory" class="form-input">
+                                    <option value="General Practitioner">General Practitioner (GP)</option>
+                                    <option value="Specialist">Specialist</option>
+                                    <option value="Chinese Medicine">Chinese Medicine</option>
+                                    <option value="Dental">Dental</option>
+                                    <option value="Hospital/Surgery">Hospital / Surgery</option>
+                                    <option value="Other">Other Medical</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Notes / Diagnosis</label>
+                                <textarea id="claimNotes" class="form-input" rows="2" placeholder="Brief description..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Receipt / Invoice</label>
+                                <div class="upload-zone" id="uploadZone" style="padding: 16px;">
+                                    <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileUpload(event)">
+                                    <div style="font-size: 20px; margin-bottom: 4px;">🧾</div>
+                                    <div style="font-size: 12px; font-weight: 600;">Upload Receipt</div>
+                                </div>
+                                <div class="file-preview" id="filePreview" style="display: none; padding: 8px;">
+                                    <div class="file-info">
+                                        <div class="file-name" id="fileName" style="font-size: 11px;">receipt.jpg</div>
+                                    </div>
+                                    <button class="file-remove" onclick="removeFile()" style="font-size: 14px;">✕</button>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="submitClaim()">
+                                Submit Claim
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ── Pending Claims Table ──── -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>⏳ Pending Reimbursements</h2>
+                            <span class="badge amber" id="pendingClaimsBadge">0</span>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Staff</th>
+                                            <th>Date & Category</th>
+                                            <th>Amount</th>
+                                            <th>Receipt</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pendingClaimsBody">
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── All Claims History ───────── -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Organization Claims History</h2>
+                        <div class="search-bar" style="margin-bottom: 0; min-width: 250px;">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="claimsSearch" placeholder="Search staff name..." onkeyup="loadClaimsHistory()">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Staff Name</th>
+                                        <th>Date</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="claimsHistoryBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ══════════ RECEIPT PREVIEW MODAL ══════════ -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>🧾 Receipt Preview</h2>
+                <button class="modal-close" onclick="closePreview()">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img id="previewImage" src="" alt="preview" style="max-width: 100%; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Auth guard ──
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user || user.role !== 'HR_ADMIN') window.location.href = 'index.html';
+
+        const ALL_STAFF = JSON.parse(localStorage.getItem('all_staff') || '[]');
+
+        let uploadedFile = null;
+        let uploadedFileName = null;
+
+        // ── Sidebar ──
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || 'HR Admin';
+        }
+
+        function updateDateDisplay() {
+            const now = new Date();
+            document.getElementById('todayDate').textContent = '📅 ' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Set default date for form
+            document.getElementById('claimDate').value = now.toISOString().split('T')[0];
+            
+            // Populate staff dropdown
+            const select = document.getElementById('claimStaff');
+            ALL_STAFF.forEach(staff => {
+                const opt = document.createElement('option');
+                opt.value = staff.email;
+                opt.textContent = `${staff.fullName} (${staff.employeeId})`;
+                select.appendChild(opt);
+            });
+        }
+
+        // ── Stats ──
+        function loadStats() {
+            const claims = JSON.parse(localStorage.getItem('medical_claims') || '[]');
+            
+            let totalCount = claims.length;
+            let pendingAmt = 0;
+            let pendingCount = 0;
+            let approvedAmt = 0;
+
+            claims.forEach(c => {
+                const amt = parseFloat(c.amount) || 0;
+                if (c.status === 'PENDING') {
+                    pendingAmt += amt;
+                    pendingCount++;
+                } else if (c.status === 'APPROVED') {
+                    approvedAmt += amt;
+                }
+            });
+
+            document.getElementById('statTotalClaims').textContent = totalCount;
+            document.getElementById('statPendingAmt').textContent = '$' + pendingAmt.toFixed(2);
+            document.getElementById('statPendingCount').textContent = `${pendingCount} claims waiting`;
+            document.getElementById('statApprovedAmt').textContent = '$' + approvedAmt.toFixed(2);
+        }
+
+        // ── Pending Table ──
+        function loadPendingClaims() {
+            const claims = JSON.parse(localStorage.getItem('medical_claims') || '[]');
+            const pending = claims.filter(c => c.status === 'PENDING').sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            const tbody = document.getElementById('pendingClaimsBody');
+            document.getElementById('pendingClaimsBadge').textContent = pending.length;
+
+            if (pending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending claims to review.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pending.map(c => {
+                const dateObj = new Date(c.date + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                const receiptLink = c.receiptName 
+                    ? `<a href="#" onclick="showPreview('${c.id}'); return false;" style="font-size: 11px; color: var(--blue-600);">📎 View Receipt</a>`
+                    : '<span style="color: var(--text-muted); font-size: 11px;">No file</span>';
+
+                return `
+                    <tr>
+                        <td><strong>${c.staffName}</strong><br><span style="font-size: 10px; color: var(--text-muted);">${c.staffEmail}</span></td>
+                        <td>${dateStr}<br><span style="font-size: 11px; color: var(--text-secondary);">${c.category}</span></td>
+                        <td><strong style="color: var(--text-primary);">$${parseFloat(c.amount).toFixed(2)}</strong></td>
+                        <td>${receiptLink}</td>
+                        <td>
+                            <div style="display: flex; gap: 4px; flex-direction: column;">
+                                <button class="btn btn-success" style="font-size: 10px; padding: 4px 8px; justify-content: center;" onclick="handleClaim('${c.id}', 'APPROVED')">Approve & Pay</button>
+                                <button class="btn btn-outline" style="font-size: 10px; padding: 4px 8px; color: var(--red-500); border-color: var(--red-300); justify-content: center;" onclick="handleClaim('${c.id}', 'REJECTED')">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function handleClaim(claimId, decision) {
+            const claims = JSON.parse(localStorage.getItem('medical_claims') || '[]');
+            const claim = claims.find(c => c.id === claimId);
+            
+            if (claim) {
+                claim.status = decision;
+                localStorage.setItem('medical_claims', JSON.stringify(claims));
+                
+                loadStats();
+                loadPendingClaims();
+                loadClaimsHistory();
+                
+                showToast(`Claim ${decision.toLowerCase()} for ${claim.staffName}`, decision === 'APPROVED' ? 'success' : 'info');
+            }
+        }
+
+        // ── History Table ──
+        function loadClaimsHistory() {
+            const claims = JSON.parse(localStorage.getItem('medical_claims') || '[]');
+            const search = document.getElementById('claimsSearch').value.toLowerCase();
+            
+            let filtered = claims.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+            
+            if (search) {
+                filtered = filtered.filter(c => c.staffName.toLowerCase().includes(search) || c.id.toLowerCase().includes(search));
+            }
+
+            const tbody = document.getElementById('claimsHistoryBody');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No claims found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => {
+                const dateObj = new Date(c.date + 'T00:00:00');
+                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                let statusBadge = '';
+                if (c.status === 'APPROVED') statusBadge = '<span class="badge green">✓ Reimbursed</span>';
+                else if (c.status === 'REJECTED') statusBadge = '<span class="badge red">✕ Rejected</span>';
+                else statusBadge = '<span class="badge amber">⏳ Pending</span>';
+
+                return `
+                    <tr>
+                        <td style="font-size: 11px; font-family: monospace; color: var(--text-secondary);">${c.id}</td>
+                        <td><strong>${c.staffName}</strong></td>
+                        <td>${dateStr}</td>
+                        <td><span style="font-size: 11px; background: var(--bg-body); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-light);">${c.category}</span></td>
+                        <td><strong>$${parseFloat(c.amount).toFixed(2)}</strong></td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── Form Submission ──
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('❌ File too large. Max 5MB.', 'error');
+                return;
+            }
+
+            uploadedFileName = file.name;
+            const preview = document.getElementById('filePreview');
+            const zone = document.getElementById('uploadZone');
+
+            document.getElementById('fileName').textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedFile = e.target.result;
+                zone.style.display = 'none';
+                preview.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeFile() {
+            uploadedFile = null;
+            uploadedFileName = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadZone').style.display = 'block';
+            document.getElementById('filePreview').style.display = 'none';
+        }
+
+        function submitClaim() {
+            const staffEmail = document.getElementById('claimStaff').value;
+            const date = document.getElementById('claimDate').value;
+            const amount = document.getElementById('claimAmount').value;
+            const category = document.getElementById('claimCategory').value;
+            const notes = document.getElementById('claimNotes').value.trim();
+
+            if (!staffEmail || !date || !amount) {
+                showToast('⚠️ Please fill in all required fields (Staff, Date, Amount).', 'error');
+                return;
+            }
+
+            const staff = ALL_STAFF.find(s => s.email === staffEmail);
+            if (!staff) return;
+
+            const claims = JSON.parse(localStorage.getItem('medical_claims') || '[]');
+            const newClaim = {
+                id: 'MC-' + String(claims.length + 1).padStart(3, '0'),
+                staffEmail: staff.email,
+                staffName: staff.fullName,
+                date: date,
+                amount: parseFloat(amount),
+                category: category,
+                receipt: uploadedFile,
+                receiptName: uploadedFileName,
+                notes: notes,
+                status: 'APPROVED', // HR logging it directly means it's approved
+                submittedAt: new Date().toISOString()
+            };
+
+            claims.push(newClaim);
+            localStorage.setItem('medical_claims', JSON.stringify(claims));
+
+            // Reset form
+            document.getElementById('claimStaff').value = '';
+            document.getElementById('claimAmount').value = '';
+            document.getElementById('claimNotes').value = '';
+            removeFile();
+
+            loadStats();
+            loadClaimsHistory();
+            showToast('✅ Claim logged and approved successfully!', 'success');
+        }
+
+        // ── Preview ──
+        function showPreview(claimId) {
+            const claims = JSON.parse(localStorage.getItem('medical_claims') || '[]');
+            const claim = claims.find(c => c.id === claimId);
+            if (!claim || !claim.receipt) return;
+            
+            document.getElementById('previewImage').src = claim.receipt;
+            document.getElementById('previewModal').classList.add('visible');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('visible');
+        }
+
+        document.getElementById('previewModal').addEventListener('click', (e) => {
+            if (e.target.id === 'previewModal') closePreview();
+        });
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'floating-toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ── Init ──
+        updateSidebar();
+        updateDateDisplay();
+        loadStats();
+        loadPendingClaims();
+        loadClaimsHistory();
+    </script>
+</body>
+</html>

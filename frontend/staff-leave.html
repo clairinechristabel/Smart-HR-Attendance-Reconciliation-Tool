@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Request — Food Angel Staff Portal</title>
+    <meta name="description" content="Submit annual or medical leave requests with doctor's note upload">
+    <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- ══════════ SIDEBAR ══════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">🍽️</div>
+                <div class="brand-text">
+                    <span class="brand-name">Food Angel</span>
+                    <span class="brand-sub">Staff Portal</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Menu</div>
+                <a href="staff-dashboard.html" class="sidebar-link">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="staff-leave.html" class="sidebar-link active">
+                    <span class="nav-icon">📝</span> Leave Request
+                </a>
+                <a href="staff-profile.html" class="sidebar-link">
+                    <span class="nav-icon">👤</span> My Profile
+                </a>
+
+                <div class="sidebar-section-label">Account</div>
+                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                    <span class="nav-icon">🚪</span> Sign Out
+                </a>
+            </nav>
+
+            <div class="sidebar-user" style="cursor: pointer;" onclick="window.location.href='staff-profile.html'">
+                <div class="user-avatar" id="sidebarAvatar">LC</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">Lisa Chan</div>
+                    <div class="user-role" id="sidebarRole">Kitchen Helper</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════════ MAIN ══════════ -->
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">Staff Portal › <span>Leave Request</span></div>
+                    <h1>Leave Request</h1>
+                </div>
+            </div>
+
+            <div class="page-content">
+
+                <!-- ── LEAVE BALANCE ──────────── -->
+                <div class="stats-row" style="margin-bottom: 28px;">
+                    <div class="stat-card">
+                        <div class="stat-icon green">🌴</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Annual Leave</div>
+                            <div class="stat-value" id="annualRemain">14</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="annualDetail">0 used of 14</div>
+                            <div class="leave-bar-track" style="margin-top: 8px;">
+                                <div class="leave-bar-fill green" id="annualBar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">🏥</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Medical Leave</div>
+                            <div class="stat-value" id="medicalRemain">12</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="medicalDetail">0 used of 12</div>
+                            <div class="leave-bar-track" style="margin-top: 8px;">
+                                <div class="leave-bar-fill blue" id="medicalBar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber">⏳</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Personal Leave</div>
+                            <div class="stat-value" id="personalRemain">5</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="personalDetail">0 used of 5</div>
+                            <div class="leave-bar-track" style="margin-top: 8px;">
+                                <div class="leave-bar-fill amber" id="personalBar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── REQUEST FORM ──────────── -->
+                <div class="card" style="margin-bottom: 28px;">
+                    <div class="card-header">
+                        <h2>📝 New Leave Request</h2>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Leave Type Selector -->
+                        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">Leave Type</label>
+                        <div class="leave-type-options">
+                            <div class="leave-type-card" id="typeAnnual" onclick="selectLeaveType('ANNUAL')">
+                                <div class="lt-icon">🌴</div>
+                                <div class="lt-name">Annual Leave</div>
+                                <div class="lt-balance" id="annualCardBalance">14 days remaining</div>
+                            </div>
+                            <div class="leave-type-card" id="typeSick" onclick="selectLeaveType('SICK')">
+                                <div class="lt-icon">🏥</div>
+                                <div class="lt-name">Sick Leave</div>
+                                <div class="lt-balance" id="medicalCardBalance">12 days remaining</div>
+                            </div>
+                            <div class="leave-type-card" id="typePersonal" onclick="selectLeaveType('PERSONAL')">
+                                <div class="lt-icon">⏳</div>
+                                <div class="lt-name">Personal Leave</div>
+                                <div class="lt-balance" id="personalCardBalance">5 days remaining</div>
+                            </div>
+                            <div class="leave-type-card" id="typeMaternity" onclick="selectLeaveType('MATERNITY')">
+                                <div class="lt-icon">👶</div>
+                                <div class="lt-name">Maternity / Paternity</div>
+                                <div class="lt-balance">As required</div>
+                            </div>
+                            <div class="leave-type-card" id="typeCompassionate" onclick="selectLeaveType('COMPASSIONATE')">
+                                <div class="lt-icon">🕊️</div>
+                                <div class="lt-name">Compassionate</div>
+                                <div class="lt-balance">Up to 3 days/event</div>
+                            </div>
+                            <div class="leave-type-card" id="typeUnpaid" onclick="selectLeaveType('UNPAID')">
+                                <div class="lt-icon">🚫</div>
+                                <div class="lt-name">Unpaid Leave</div>
+                                <div class="lt-balance">Unlimited</div>
+                            </div>
+                        </div>
+
+                        <!-- Date Range -->
+                        <div style="display: flex; gap: 16px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Start Date</label>
+                                <input type="date" id="leaveStart" class="form-input" onchange="calculateDays()">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>End Date</label>
+                                <input type="date" id="leaveEnd" class="form-input" onchange="calculateDays()">
+                            </div>
+                        </div>
+
+                        <div id="daysSummary" style="display: none; font-size: 14px; font-weight: 600; color: var(--green-600); margin-bottom: 16px; padding: 10px 16px; background: var(--green-50); border-radius: var(--radius-md);">
+                            📅 Duration: <span id="daysCount">0</span> day(s)
+                        </div>
+
+                        <!-- Reason -->
+                        <div class="form-group">
+                            <label>Reason <span style="font-weight: 400; color: var(--text-muted);">(optional)</span></label>
+                            <textarea id="leaveReason" class="form-input" rows="3" placeholder="Brief reason for your leave request..." style="resize: vertical; font-family: inherit;"></textarea>
+                        </div>
+
+                        <!-- Doctor's Note Upload (for Sick and Maternity) -->
+                        <div id="uploadSection" style="display: none;">
+                            <div class="form-group">
+                                <label>📎 Supporting Document (Medical Certificate / Proof)</label>
+                                <div class="upload-zone" id="uploadZone">
+                                    <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileUpload(event)">
+                                    <div class="upload-icon">📄</div>
+                                    <div class="upload-text">Click or drag to upload</div>
+                                    <div class="upload-hint">JPG, PNG, or PDF (max 5MB)</div>
+                                </div>
+                                <div class="file-preview" id="filePreview" style="display: none;">
+                                    <img id="fileThumb" src="" alt="preview">
+                                    <div class="file-info">
+                                        <div class="file-name" id="fileName">document.jpg</div>
+                                        <div class="file-size" id="fileSize">1.2 MB</div>
+                                    </div>
+                                    <button class="file-remove" onclick="removeFile()">✕</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-success" style="width: 100%; padding: 14px; font-size: 15px; margin-top: 8px;" id="submitBtn" onclick="submitLeave()">
+                            📨 Submit Leave Request
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── LEAVE HISTORY ──────────── -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 My Leave History</h2>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Submitted</th>
+                                        <th>Type</th>
+                                        <th>Dates</th>
+                                        <th>Days</th>
+                                        <th>Status</th>
+                                        <th>Attachment</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaveHistoryBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ══════════ ATTACHMENT PREVIEW MODAL ══════════ -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>📎 Attachment Preview</h2>
+                <button class="modal-close" onclick="closePreview()">✕</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img id="previewImage" src="" alt="preview" style="max-width: 100%; border-radius: 8px;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Auth guard ──
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user) window.location.href = 'index.html';
+
+        // ── State ──
+        let selectedType = null;
+        let uploadedFile = null;
+        let uploadedFileName = null;
+
+        // ── Constants ──
+        const LEAVE_TYPES = {
+            'ANNUAL': { icon: '🌴', name: 'Annual Leave' },
+            'SICK': { icon: '🏥', name: 'Sick Leave' },
+            'PERSONAL': { icon: '⏳', name: 'Personal Leave' },
+            'MATERNITY': { icon: '👶', name: 'Maternity/Paternity' },
+            'COMPASSIONATE': { icon: '🕊️', name: 'Compassionate' },
+            'UNPAID': { icon: '🚫', name: 'Unpaid Leave' }
+        };
+
+        // ── Sidebar ──
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || user.department;
+        }
+
+        // ── Leave Balance ──
+        function loadLeaveBalance() {
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const myLeaves = leaves.filter(l => l.staffEmail === user.email && l.status === 'APPROVED');
+
+            const annualUsed = myLeaves.filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
+            const medicalUsed = myLeaves.filter(l => l.type === 'SICK').reduce((s, l) => s + l.days, 0);
+            const personalUsed = myLeaves.filter(l => l.type === 'PERSONAL').reduce((s, l) => s + l.days, 0);
+
+            const annualRemain = 14 - annualUsed;
+            const medicalRemain = 12 - medicalUsed;
+            const personalRemain = 5 - personalUsed;
+
+            document.getElementById('annualRemain').textContent = annualRemain;
+            document.getElementById('annualDetail').textContent = `${annualUsed} used of 14`;
+            document.getElementById('medicalRemain').textContent = medicalRemain;
+            document.getElementById('medicalDetail').textContent = `${medicalUsed} used of 12`;
+            document.getElementById('personalRemain').textContent = personalRemain;
+            document.getElementById('personalDetail').textContent = `${personalUsed} used of 5`;
+
+            document.getElementById('annualCardBalance').textContent = `${annualRemain} days remaining`;
+            document.getElementById('medicalCardBalance').textContent = `${medicalRemain} days remaining`;
+            document.getElementById('personalCardBalance').textContent = `${personalRemain} days remaining`;
+
+            // Animate bars
+            setTimeout(() => {
+                document.getElementById('annualBar').style.width = `${(annualUsed / 14) * 100}%`;
+                document.getElementById('medicalBar').style.width = `${(medicalUsed / 12) * 100}%`;
+                document.getElementById('personalBar').style.width = `${(personalUsed / 5) * 100}%`;
+            }, 300);
+        }
+
+        // ── Leave Type Selection ──
+        function selectLeaveType(type) {
+            selectedType = type;
+            document.querySelectorAll('.leave-type-card').forEach(card => card.classList.remove('selected'));
+            
+            const typeIdMap = {
+                'ANNUAL': 'typeAnnual',
+                'SICK': 'typeSick',
+                'PERSONAL': 'typePersonal',
+                'MATERNITY': 'typeMaternity',
+                'COMPASSIONATE': 'typeCompassionate',
+                'UNPAID': 'typeUnpaid'
+            };
+            
+            document.getElementById(typeIdMap[type]).classList.add('selected');
+
+            // Show doctor note upload for sick or maternity leave
+            document.getElementById('uploadSection').style.display = (type === 'SICK' || type === 'MATERNITY') ? 'block' : 'none';
+        }
+
+        // ── Date Calculation ──
+        function calculateDays() {
+            const start = document.getElementById('leaveStart').value;
+            const end = document.getElementById('leaveEnd').value;
+            const summary = document.getElementById('daysSummary');
+
+            if (start && end) {
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                let days = 0;
+
+                // For maternity leave, count all days. For others, count weekdays only.
+                const countAllDays = (selectedType === 'MATERNITY');
+
+                let current = new Date(startDate);
+                while (current <= endDate) {
+                    if (countAllDays || (current.getDay() !== 0 && current.getDay() !== 6)) {
+                        days++;
+                    }
+                    current.setDate(current.getDate() + 1);
+                }
+
+                if (days > 0) {
+                    document.getElementById('daysCount').textContent = days;
+                    summary.style.display = 'block';
+                } else {
+                    summary.style.display = 'none';
+                }
+            } else {
+                summary.style.display = 'none';
+            }
+        }
+
+        // ── File Upload ──
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('❌ File too large. Max 5MB.', 'error');
+                return;
+            }
+
+            uploadedFileName = file.name;
+            const preview = document.getElementById('filePreview');
+            const zone = document.getElementById('uploadZone');
+            const thumb = document.getElementById('fileThumb');
+
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+
+            // Read as base64
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedFile = e.target.result;
+
+                if (file.type.startsWith('image/')) {
+                    thumb.src = uploadedFile;
+                    thumb.style.display = 'block';
+                } else {
+                    thumb.style.display = 'none';
+                }
+
+                zone.style.display = 'none';
+                preview.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeFile() {
+            uploadedFile = null;
+            uploadedFileName = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadZone').style.display = 'block';
+            document.getElementById('filePreview').style.display = 'none';
+        }
+
+        // ── Submit ──
+        function submitLeave() {
+            if (!selectedType) {
+                showToast('⚠️ Please select a leave type.', 'error');
+                return;
+            }
+
+            const startDate = document.getElementById('leaveStart').value;
+            const endDate = document.getElementById('leaveEnd').value;
+
+            if (!startDate || !endDate) {
+                showToast('⚠️ Please select start and end dates.', 'error');
+                return;
+            }
+
+            if (new Date(endDate) < new Date(startDate)) {
+                showToast('⚠️ End date must be after start date.', 'error');
+                return;
+            }
+
+            // Calculate days
+            let days = 0;
+            const countAllDays = (selectedType === 'MATERNITY');
+            let current = new Date(startDate);
+            const end = new Date(endDate);
+            while (current <= end) {
+                if (countAllDays || (current.getDay() !== 0 && current.getDay() !== 6)) days++;
+                current.setDate(current.getDate() + 1);
+            }
+
+            if (days === 0) {
+                showToast('⚠️ Selected dates fall on weekends.', 'error');
+                return;
+            }
+
+            // Check if file upload is required for sick leave
+            if (selectedType === 'SICK' && days > 2 && !uploadedFile) {
+                showToast('⚠️ Medical certificate is required for sick leaves > 2 days.', 'error');
+                return;
+            }
+
+            const reason = document.getElementById('leaveReason').value.trim();
+
+            // Save
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const newRequest = {
+                id: 'LR-' + String(leaves.length + 1).padStart(3, '0'),
+                type: selectedType,
+                startDate: startDate,
+                endDate: endDate,
+                days: days,
+                reason: reason || null,
+                attachment: uploadedFile,
+                attachmentName: uploadedFileName,
+                status: 'PENDING',
+                supervisorApproval: 'PENDING', // Multi-level approval fields
+                hrApproval: 'PENDING',
+                submittedAt: new Date().toISOString(),
+                staffName: user.fullName,
+                staffEmail: user.email,
+                staffLocation: user.location
+            };
+
+            leaves.push(newRequest);
+            localStorage.setItem('leave_requests', JSON.stringify(leaves));
+
+            // Reset form
+            selectedType = null;
+            document.querySelectorAll('.leave-type-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById('leaveStart').value = '';
+            document.getElementById('leaveEnd').value = '';
+            document.getElementById('leaveReason').value = '';
+            document.getElementById('daysSummary').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'none';
+            removeFile();
+
+            // Refresh
+            loadLeaveBalance();
+            loadLeaveHistory();
+            showToast('✅ Leave request submitted! Waiting for supervisor approval.', 'success');
+        }
+
+        // ── Leave History Table ──
+        function loadLeaveHistory() {
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const myLeaves = leaves
+                .filter(l => l.staffEmail === user.email)
+                .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+            const tbody = document.getElementById('leaveHistoryBody');
+
+            if (myLeaves.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave requests yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = myLeaves.map(l => {
+                const submitted = new Date(l.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                const typeInfo = LEAVE_TYPES[l.type] || { icon: '📄', name: l.type };
+
+                const startStr = new Date(l.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
+
+                let statusBadge = '';
+                if (l.status === 'APPROVED') {
+                    statusBadge = '<span class="badge green">✓ Approved</span>';
+                } else if (l.status === 'REJECTED') {
+                    statusBadge = '<span class="badge red">✕ Rejected</span>';
+                } else if (l.status === 'SUPERVISOR_APPROVED') {
+                    statusBadge = '<span class="badge blue">⏳ HR Review</span>';
+                } else {
+                    statusBadge = '<span class="badge amber">⏳ L1 Pending</span>';
+                }
+
+                // Add approval chain visual to status badge cell
+                const chainVisual = `
+                    <div style="margin-top: 6px; font-size: 10px; display: flex; align-items: center; gap: 4px; color: var(--text-muted);">
+                        <span style="color: ${l.supervisorApproval === 'APPROVED' ? 'var(--green-600)' : (l.supervisorApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L1: ${l.supervisorApproval === 'APPROVED' ? '✓' : (l.supervisorApproval === 'REJECTED' ? '✕' : '⏳')}</span>
+                        <span>→</span>
+                        <span style="color: ${l.hrApproval === 'APPROVED' ? 'var(--green-600)' : (l.hrApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L2: ${l.hrApproval === 'APPROVED' ? '✓' : (l.hrApproval === 'REJECTED' ? '✕' : (l.hrApproval === 'N/A' ? 'N/A' : '⏳'))}</span>
+                    </div>
+                `;
+
+                const attachmentCell = l.attachmentName
+                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 12px; color: var(--blue-600);">📎 ${l.attachmentName}</a>`
+                    : '<span style="color: var(--text-muted);">—</span>';
+
+                return `
+                    <tr>
+                        <td>${submitted}</td>
+                        <td>${typeInfo.icon} ${typeInfo.name}</td>
+                        <td>${dateRange}</td>
+                        <td><strong>${l.days}</strong></td>
+                        <td>${statusBadge}${chainVisual}</td>
+                        <td>${attachmentCell}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── Attachment Preview ──
+        function showPreview(leaveId) {
+            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const leave = leaves.find(l => l.id === leaveId);
+            if (!leave || !leave.attachment) return;
+
+            document.getElementById('previewImage').src = leave.attachment;
+            document.getElementById('previewModal').classList.add('visible');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('visible');
+        }
+
+        document.getElementById('previewModal').addEventListener('click', (e) => {
+            if (e.target.id === 'previewModal') closePreview();
+        });
+
+        // ── Toast ──
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'floating-toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ── Set default dates ──
+        function setDefaultDates() {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('leaveStart').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('leaveEnd').value = tomorrow.toISOString().split('T')[0];
+        }
+
+        // ── Init ──
+        updateSidebar();
+        loadLeaveBalance();
+        loadLeaveHistory();
+        setDefaultDates();
+        
+        // Add event listeners for dynamic days calculation
+        document.getElementById('leaveStart').addEventListener('change', calculateDays);
+        document.getElementById('leaveEnd').addEventListener('change', calculateDays);
+    </script>
+</body>
+</html>
