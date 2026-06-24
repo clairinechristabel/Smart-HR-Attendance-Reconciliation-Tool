@@ -195,10 +195,13 @@
         // Get all staff managed by this supervisor
         let myTeam = [];
         async function loadMyTeam() {
+            if (!user.managedLocations || user.managedLocations.length === 0) return;
+            
             const { data } = await supabase
                 .from('users')
                 .select('*')
-                .eq('supervisor_email', user.email);
+                .in('location', user.managedLocations)
+                .neq('email', user.email);
             
             myTeam = data ? data.map(u => ({
                 email: u.email,
