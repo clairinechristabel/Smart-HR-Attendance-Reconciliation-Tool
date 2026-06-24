@@ -316,7 +316,17 @@
                 statusEl.innerHTML = '<div class="pulse"></div> <i class="fa-solid fa-mobile-screen"></i> Camera unavailable — simulating scan...';
 
                 setTimeout(() => {
-                    statusEl.innerHTML = '<div class="pulse" style="background: v        function closeScan() {
+                    statusEl.innerHTML = '<div class="pulse" style="background: var(--green-500);"></div> <i class="fa-solid fa-check"></i> QR Code detected!';
+
+                    setTimeout(() => {
+                        closeScan();
+                        processCheckInOut();
+                    }, 800);
+                }, 2500);
+            }
+        }
+
+        function closeScan() {
             const overlay = document.getElementById('cameraOverlay');
             overlay.classList.remove('active');
 
