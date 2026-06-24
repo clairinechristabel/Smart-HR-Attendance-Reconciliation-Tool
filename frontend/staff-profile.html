@@ -7,6 +7,9 @@
     <meta name="description" content="Staff profile with personal info, monthly attendance report, and full attendance log">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js?v=4"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -276,23 +279,26 @@
         }
 
         // ── Monthly Report ──
-        function loadMonthlyReport() {
+        async function loadMonthlyReport() {
             const selector = document.getElementById('monthSelector');
             const [year, month] = selector.value.split('-').map(Number);
 
-            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+            // Fetch records from Supabase
+            const { data: records } = await supabase
+                .from('attendance_records')
+                .select('*')
+                .eq('staff_email', user.email);
             
-            // Filter to user AND selected month
-            const monthRecords = records.filter(r => {
-                if (r.staffEmail !== user.email) return false;
+            // Filter to selected month
+            const monthRecords = (records || []).filter(r => {
                 const d = new Date(r.date);
                 return d.getMonth() === month - 1 && d.getFullYear() === year;
             }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
             // Stats
-            const daysPresent = monthRecords.filter(r => r.checkOut).length;
+            const daysPresent = monthRecords.filter(r => r.check_out).length;
             const lateCount = monthRecords.filter(r => r.status === 'LATE').length;
-            const totalHours = monthRecords.reduce((s, r) => s + (r.hoursWorked || 0), 0);
+            const totalHours = monthRecords.reduce((s, r) => s + (r.hours_worked || 0), 0);
             const avgHours = daysPresent > 0 ? (totalHours / daysPresent) : 0;
 
             // Working days in month (approximate)
@@ -324,12 +330,15 @@
             }, 300);
 
             // Leave balance (all time approved for the user)
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const myLeaves = leaves.filter(l => l.staffEmail === user.email && l.status === 'APPROVED');
+            const { data: myLeaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .eq('staff_email', user.email)
+                .eq('status', 'APPROVED');
             
-            const annualUsed = myLeaves.filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
-            const medicalUsed = myLeaves.filter(l => l.type === 'SICK').reduce((s, l) => s + l.days, 0);
-            const personalUsed = myLeaves.filter(l => l.type === 'PERSONAL').reduce((s, l) => s + l.days, 0);
+            const annualUsed = (myLeaves || []).filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
+            const medicalUsed = (myLeaves || []).filter(l => l.type === 'SICK').reduce((s, l) => s + l.days, 0);
+            const personalUsed = (myLeaves || []).filter(l => l.type === 'PERSONAL').reduce((s, l) => s + l.days, 0);
 
             document.getElementById('rpAnnualUsed').textContent = annualUsed;
             document.getElementById('rpMedicalUsed').textContent = medicalUsed;
@@ -365,9 +374,9 @@
                     <tr>
                         <td><strong>${dateStr}</strong></td>
                         <td>${dayStr}</td>
-                        <td>${r.checkIn || '—'}</td>
-                        <td>${r.checkOut || '<span style="color: var(--text-muted);">—</span>'}</td>
-                        <td>${r.hoursWorked ? r.hoursWorked + ' hrs' : '—'}</td>
+                        <td>${r.check_in || '—'}</td>
+                        <td>${r.check_out || '<span style="color: var(--text-muted);">—</span>'}</td>
+                        <td>${r.hours_worked ? r.hours_worked + ' hrs' : '—'}</td>
                         <td>${statusBadge}</td>
                     </tr>
                 `;
