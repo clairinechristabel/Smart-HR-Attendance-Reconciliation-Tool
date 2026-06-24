@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Angel — Staff Portal</title>
-    <meta name="description" content="Food Angel Staff Attendance & Leave Management System">
+    <title>Smart HR Tool — Food Angel</title>
+    <meta name="description" content="Attendance and Leave Management System">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
     <style>
         body { background: none; display: flex; flex-direction: column; min-height: 100vh; padding: 0; overflow-x: hidden; }
         .hero-bg { position: fixed; inset: 0; z-index: 0; background: url('bg.png') center center / cover no-repeat; }
@@ -148,158 +151,62 @@
 
         const ALL_STAFF = Object.values(USERS).filter(u => u.role !== 'HR_ADMIN');
 
-        function handleLogin() {
+        async function handleLogin() {
             const email = document.getElementById('email').value.trim().toLowerCase();
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('loginError');
             const btn = document.getElementById('loginBtn');
 
             if (!email || !password) { errorEl.textContent = 'Please enter email and password.'; errorEl.classList.add('visible'); return; }
-            const user = USERS[email];
-            if (!user || user.password !== password) { errorEl.textContent = 'Invalid email or password. Try the demo credentials below.'; errorEl.classList.add('visible'); return; }
 
-            errorEl.classList.remove('visible');
             btn.textContent = 'Signing in...';
             btn.disabled = true;
 
-            const userData = { ...user };
-            delete userData.password;
-            localStorage.setItem('user', JSON.stringify(userData));
+            try {
+                // Fetch user from Supabase
+                const { data: user, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
 
-            // Store all staff list for cross-page reference
-            const allStaffData = Object.values(USERS).map(u => { const d = {...u}; delete d.password; return d; });
-            localStorage.setItem('all_staff', JSON.stringify(allStaffData));
+                // Simple password check for demo
+                const isValidPassword = (user && user.role === 'HR_ADMIN' && password === 'admin') || 
+                                      (user && user.role !== 'HR_ADMIN' && password === '1234');
 
-            // Seed sample data if first time
-            if (!localStorage.getItem('data_seeded')) {
-                seedAllSampleData();
-                localStorage.setItem('data_seeded', 'true');
+                if (error || !user || !isValidPassword) {
+                    errorEl.textContent = 'Invalid email or password. Try the demo credentials below.';
+                    errorEl.classList.add('visible');
+                    btn.textContent = 'Sign In';
+                    btn.disabled = false;
+                    return;
+                }
+
+                errorEl.classList.remove('visible');
+
+                // Map snake_case to camelCase for frontend compatibility
+                const userData = {
+                    email: user.email,
+                    fullName: user.full_name,
+                    role: user.role,
+                    location: user.location,
+                    staffType: user.staff_type,
+                    managedLocations: user.managed_locations
+                };
+
+                localStorage.setItem('user', JSON.stringify(userData));
+
+                setTimeout(() => {
+                    if (userData.role === 'HR_ADMIN') window.location.href = 'hr-dashboard.html';
+                    else if (userData.role === 'SUPERVISOR') window.location.href = 'supervisor-dashboard.html';
+                    else window.location.href = 'staff-dashboard.html';
+                }, 500);
+            } catch (err) {
+                errorEl.textContent = 'Network error connecting to database.';
+                errorEl.classList.add('visible');
+                btn.textContent = 'Sign In';
+                btn.disabled = false;
             }
-
-            setTimeout(() => {
-                if (user.role === 'HR_ADMIN') window.location.href = 'hr-dashboard.html';
-                else if (user.role === 'SUPERVISOR') window.location.href = 'supervisor-dashboard.html';
-                else window.location.href = 'staff-dashboard.html';
-            }, 500);
-        }
-
-        function seedAllSampleData() {
-            const today = new Date();
-            const records = [];
-            const staffEmails = Object.keys(USERS).filter(e => USERS[e].role !== 'HR_ADMIN');
-
-            staffEmails.forEach(email => {
-                const user = USERS[email];
-                const isVolunteer = user.staffType === 'VOLUNTEER';
-                const isPT = user.staffType === 'PART_TIME';
-                const daysToGenerate = isVolunteer ? 8 : 20;
-
-                let date = new Date(today);
-                let generated = 0;
-                while (generated < daysToGenerate) {
-                    date.setDate(date.getDate() - 1);
-                    if (date.getDay() === 0 || date.getDay() === 6) continue;
-                    if (isVolunteer && Math.random() < 0.4) { generated++; continue; }
-
-                    const dateStr = date.toISOString().split('T')[0];
-                    const isLate = Math.random() < 0.12;
-                    const baseHour = isPT ? 10 + Math.floor(Math.random() * 3) : (isLate ? 9 + Math.floor(Math.random() * 1) : 7 + Math.floor(Math.random() * 2));
-                    const baseMin = Math.floor(Math.random() * 60);
-                    const hoursWorked = isPT ? 4 + Math.random() * 3 : (isVolunteer ? 3 + Math.random() * 4 : 7.5 + Math.random() * 2);
-                    const outHour = baseHour + Math.floor(hoursWorked);
-                    const outMin = Math.floor((hoursWorked % 1) * 60);
-
-                    records.push({
-                        date: dateStr,
-                        staffEmail: email,
-                        staffName: user.fullName,
-                        location: user.location,
-                        checkIn: `${String(baseHour).padStart(2,'0')}:${String(baseMin).padStart(2,'0')}`,
-                        checkOut: `${String(outHour).padStart(2,'0')}:${String(outMin).padStart(2,'0')}`,
-                        hoursWorked: Math.round(hoursWorked * 10) / 10,
-                        status: isLate ? 'LATE' : 'ON_TIME',
-                        method: 'QR_SCAN',
-                        staffType: user.staffType
-                    });
-                    generated++;
-                }
-            });
-
-            localStorage.setItem('attendance_records', JSON.stringify(records));
-
-            // ── Seed leave requests (with multi-level approval) ──
-            const leaves = [
-                {
-                    id: 'LR-001', type: 'ANNUAL', startDate: '2026-06-12', endDate: '2026-06-12', days: 1,
-                    reason: 'Family event', attachment: null, attachmentName: null,
-                    status: 'APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'APPROVED',
-                    submittedAt: '2026-06-10T09:30:00', staffName: 'Lisa Chan', staffEmail: 'lisa.chan@foodangel.hk',
-                    staffLocation: 'Sham Shui Po Factory'
-                },
-                {
-                    id: 'LR-002', type: 'SICK', startDate: '2026-06-05', endDate: '2026-06-06', days: 2,
-                    reason: 'Doctor appointment + rest', attachment: null, attachmentName: 'doctor_note.jpg',
-                    status: 'APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'N/A',
-                    submittedAt: '2026-06-04T14:00:00', staffName: 'Lisa Chan', staffEmail: 'lisa.chan@foodangel.hk',
-                    staffLocation: 'Sham Shui Po Factory'
-                },
-                {
-                    id: 'LR-003', type: 'ANNUAL', startDate: '2026-06-25', endDate: '2026-06-27', days: 3,
-                    reason: 'Holiday trip', attachment: null, attachmentName: null,
-                    status: 'PENDING', supervisorApproval: 'PENDING', hrApproval: 'PENDING',
-                    submittedAt: '2026-06-20T10:00:00', staffName: 'Mark Lee', staffEmail: 'mark.lee@foodangel.hk',
-                    staffLocation: 'Sha Tin Hub'
-                },
-                {
-                    id: 'LR-004', type: 'SICK', startDate: '2026-06-18', endDate: '2026-06-18', days: 1,
-                    reason: 'Feeling unwell', attachment: null, attachmentName: null,
-                    status: 'SUPERVISOR_APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'N/A',
-                    submittedAt: '2026-06-18T08:00:00', staffName: 'Peter Ho', staffEmail: 'peter.ho@foodangel.hk',
-                    staffLocation: 'Kwai Chung Warehouse'
-                },
-                {
-                    id: 'LR-005', type: 'PERSONAL', startDate: '2026-06-30', endDate: '2026-06-30', days: 1,
-                    reason: 'Bank appointment', attachment: null, attachmentName: null,
-                    status: 'PENDING', supervisorApproval: 'PENDING', hrApproval: 'PENDING',
-                    submittedAt: '2026-06-22T11:00:00', staffName: 'Lisa Chan', staffEmail: 'lisa.chan@foodangel.hk',
-                    staffLocation: 'Sham Shui Po Factory'
-                },
-                {
-                    id: 'LR-006', type: 'COMPASSIONATE', startDate: '2026-06-16', endDate: '2026-06-17', days: 2,
-                    reason: 'Family bereavement', attachment: null, attachmentName: null,
-                    status: 'APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'APPROVED',
-                    submittedAt: '2026-06-15T09:00:00', staffName: 'Mark Lee', staffEmail: 'mark.lee@foodangel.hk',
-                    staffLocation: 'Sha Tin Hub'
-                },
-                {
-                    id: 'LR-007', type: 'UNPAID', startDate: '2026-07-01', endDate: '2026-07-02', days: 2,
-                    reason: 'Personal matter', attachment: null, attachmentName: null,
-                    status: 'SUPERVISOR_APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'PENDING',
-                    submittedAt: '2026-06-21T15:00:00', staffName: 'Amy Cheung', staffEmail: 'amy.cheung@foodangel.hk',
-                    staffLocation: 'Kwai Chung Warehouse'
-                },
-                {
-                    id: 'LR-008', type: 'MATERNITY', startDate: '2026-08-01', endDate: '2026-10-24', days: 60,
-                    reason: 'Maternity leave', attachment: null, attachmentName: 'medical_cert.pdf',
-                    status: 'SUPERVISOR_APPROVED', supervisorApproval: 'APPROVED', hrApproval: 'PENDING',
-                    submittedAt: '2026-06-20T10:00:00', staffName: 'Jenny Yip', staffEmail: 'jenny.yip@foodangel.hk',
-                    staffLocation: 'Sha Tin Hub'
-                }
-            ];
-            localStorage.setItem('leave_requests', JSON.stringify(leaves));
-
-            // ── Seed medical claims ──
-            const claims = [
-                { id: 'MC-001', staffEmail: 'lisa.chan@foodangel.hk', staffName: 'Lisa Chan', date: '2026-06-05', amount: 350, category: 'General Practitioner', receipt: null, receiptName: 'receipt_gp.jpg', notes: 'Flu consultation', status: 'APPROVED', submittedAt: '2026-06-06T09:00:00' },
-                { id: 'MC-002', staffEmail: 'mark.lee@foodangel.hk', staffName: 'Mark Lee', date: '2026-06-15', amount: 800, category: 'Specialist', receipt: null, receiptName: 'specialist_receipt.jpg', notes: 'Knee follow-up', status: 'PENDING', submittedAt: '2026-06-16T10:00:00' },
-                { id: 'MC-003', staffEmail: 'peter.ho@foodangel.hk', staffName: 'Peter Ho', date: '2026-06-10', amount: 200, category: 'Chinese Medicine', receipt: null, receiptName: null, notes: 'Back pain treatment', status: 'APPROVED', submittedAt: '2026-06-11T14:00:00' },
-                { id: 'MC-004', staffEmail: 'amy.cheung@foodangel.hk', staffName: 'Amy Cheung', date: '2026-06-20', amount: 450, category: 'Dental', receipt: null, receiptName: 'dental_receipt.pdf', notes: 'Wisdom tooth extraction', status: 'PENDING', submittedAt: '2026-06-21T09:00:00' },
-                { id: 'MC-005', staffEmail: 'lisa.chan@foodangel.hk', staffName: 'Lisa Chan', date: '2026-05-28', amount: 180, category: 'General Practitioner', receipt: null, receiptName: null, notes: 'Cold & flu', status: 'APPROVED', submittedAt: '2026-05-29T10:00:00' }
-            ];
-            localStorage.setItem('medical_claims', JSON.stringify(claims));
-
-            // ── Seed reconciliation runs ──
-            localStorage.setItem('reconciliation_runs', JSON.stringify([]));
         }
 
         document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });

@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Request — Food Angel Staff Portal</title>
-    <meta name="description" content="Submit annual or medical leave requests with doctor's note upload">
+    <title>Leave Management — Food Angel Staff Portal</title>
+    <meta name="description" content="Food Angel Staff Leave Management">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -258,15 +261,20 @@
             document.getElementById('sidebarName').textContent = user.fullName;
             document.getElementById('sidebarRole').textContent = user.position || user.department;
         }
+        updateSidebar();
 
         // ── Leave Balance ──
-        function loadLeaveBalance() {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const myLeaves = leaves.filter(l => l.staffEmail === user.email && l.status === 'APPROVED');
+        async function loadLeaveBalance() {
+            const { data: leaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .eq('staff_email', user.email)
+                .eq('status', 'APPROVED');
 
-            const annualUsed = myLeaves.filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
-            const medicalUsed = myLeaves.filter(l => l.type === 'SICK').reduce((s, l) => s + l.days, 0);
-            const personalUsed = myLeaves.filter(l => l.type === 'PERSONAL').reduce((s, l) => s + l.days, 0);
+            const myLeaves = leaves || [];
+            const annualUsed = myLeaves.filter(l => l.type === 'ANNUAL').reduce((sum, l) => sum + l.days, 0);
+            const medicalUsed = myLeaves.filter(l => l.type === 'SICK').reduce((sum, l) => sum + l.days, 0);
+            const personalUsed = myLeaves.filter(l => l.type === 'PERSONAL').reduce((sum, l) => sum + l.days, 0);
 
             const annualRemain = 14 - annualUsed;
             const medicalRemain = 12 - medicalUsed;
@@ -389,7 +397,7 @@
         }
 
         // ── Submit ──
-        function submitLeave() {
+        async function submitLeave() {
             if (!selectedType) {
                 showToast('<i class="fa-solid fa-triangle-exclamation"></i> Please select a leave type.', 'error');
                 return;
@@ -430,29 +438,37 @@
             }
 
             const reason = document.getElementById('leaveReason').value.trim();
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px;"></i> Submitting...';
+            btn.disabled = true;
 
-            // Save
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const newId = 'LR-' + Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+
             const newRequest = {
-                id: 'LR-' + String(leaves.length + 1).padStart(3, '0'),
+                id: newId,
                 type: selectedType,
-                startDate: startDate,
-                endDate: endDate,
+                start_date: startDate,
+                end_date: endDate,
                 days: days,
                 reason: reason || null,
-                attachment: uploadedFile,
-                attachmentName: uploadedFileName,
+                attachment_url: uploadedFile,
+                attachment_name: uploadedFileName,
                 status: 'PENDING',
-                supervisorApproval: 'PENDING', // Multi-level approval fields
-                hrApproval: 'PENDING',
-                submittedAt: new Date().toISOString(),
-                staffName: user.fullName,
-                staffEmail: user.email,
-                staffLocation: user.location
+                supervisor_approval: 'PENDING',
+                hr_approval: 'PENDING',
+                staff_name: user.fullName,
+                staff_email: user.email,
+                staff_location: user.location
             };
 
-            leaves.push(newRequest);
-            localStorage.setItem('leave_requests', JSON.stringify(leaves));
+            const { error } = await supabase.from('leave_requests').insert([newRequest]);
+
+            if (error) {
+                showToast('Failed to submit request.', 'error');
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i> Submit Leave Request';
+                btn.disabled = false;
+                return;
+            }
 
             // Reset form
             selectedType = null;
@@ -465,31 +481,34 @@
             removeFile();
 
             // Refresh
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane" style="margin-right: 6px;"></i> Submit Leave Request';
+            btn.disabled = false;
             loadLeaveBalance();
             loadLeaveHistory();
-            showToast('<i class="fa-solid fa-check"></i> Leave request submitted! Waiting for supervisor approval.', 'success');
+            showToast('Leave request submitted! Waiting for supervisor approval.', 'success');
         }
 
         // ── Leave History Table ──
-        function loadLeaveHistory() {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const myLeaves = leaves
-                .filter(l => l.staffEmail === user.email)
-                .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+        async function loadLeaveHistory() {
+            const { data: myLeaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .eq('staff_email', user.email)
+                .order('submitted_at', { ascending: false });
 
             const tbody = document.getElementById('leaveHistoryBody');
 
-            if (myLeaves.length === 0) {
+            if (!myLeaves || myLeaves.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave requests yet.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = myLeaves.map(l => {
-                const submitted = new Date(l.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const submitted = new Date(l.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const typeInfo = LEAVE_TYPES[l.type] || { icon: '<i class="fa-solid fa-file"></i>', name: l.type };
 
-                const startStr = new Date(l.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const endStr = new Date(l.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const startStr = new Date(l.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
 
                 let statusBadge = '';
@@ -506,14 +525,14 @@
                 // Add approval chain visual to status badge cell
                 const chainVisual = `
                     <div style="margin-top: 6px; font-size: 10px; display: flex; align-items: center; gap: 4px; color: var(--text-muted);">
-                        <span style="color: ${l.supervisorApproval === 'APPROVED' ? 'var(--green-600)' : (l.supervisorApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L1: ${l.supervisorApproval === 'APPROVED' ? '<i class="fa-solid fa-check"></i>' : (l.supervisorApproval === 'REJECTED' ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-hourglass-half"></i>')}</span>
+                        <span style="color: ${l.supervisor_approval === 'APPROVED' ? 'var(--green-600)' : (l.supervisor_approval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L1: ${l.supervisor_approval === 'APPROVED' ? '<i class="fa-solid fa-check"></i>' : (l.supervisor_approval === 'REJECTED' ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-hourglass-half"></i>')}</span>
                         <span>→</span>
-                        <span style="color: ${l.hrApproval === 'APPROVED' ? 'var(--green-600)' : (l.hrApproval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L2: ${l.hrApproval === 'APPROVED' ? '<i class="fa-solid fa-check"></i>' : (l.hrApproval === 'REJECTED' ? '<i class="fa-solid fa-xmark"></i>' : (l.hrApproval === 'N/A' ? 'N/A' : '<i class="fa-solid fa-hourglass-half"></i>'))}</span>
+                        <span style="color: ${l.hr_approval === 'APPROVED' ? 'var(--green-600)' : (l.hr_approval === 'REJECTED' ? 'var(--red-600)' : 'inherit')}">L2: ${l.hr_approval === 'APPROVED' ? '<i class="fa-solid fa-check"></i>' : (l.hr_approval === 'REJECTED' ? '<i class="fa-solid fa-xmark"></i>' : (l.hr_approval === 'N/A' ? 'N/A' : '<i class="fa-solid fa-hourglass-half"></i>'))}</span>
                     </div>
                 `;
 
-                const attachmentCell = l.attachmentName
-                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 12px; color: var(--blue-600);"><i class="fa-solid fa-paperclip"></i> ${l.attachmentName}</a>`
+                const attachmentCell = l.attachment_name
+                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 12px; color: var(--blue-600);"><i class="fa-solid fa-paperclip"></i> ${l.attachment_name}</a>`
                     : '<span style="color: var(--text-muted);">—</span>';
 
                 return `
@@ -530,12 +549,11 @@
         }
 
         // ── Attachment Preview ──
-        function showPreview(leaveId) {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const leave = leaves.find(l => l.id === leaveId);
-            if (!leave || !leave.attachment) return;
+        async function showPreview(leaveId) {
+            const { data: leave } = await supabase.from('leave_requests').select('*').eq('id', leaveId).single();
+            if (!leave || !leave.attachment_url) return;
 
-            document.getElementById('previewImage').src = leave.attachment;
+            document.getElementById('previewImage').src = leave.attachment_url;
             document.getElementById('previewModal').classList.add('visible');
         }
 

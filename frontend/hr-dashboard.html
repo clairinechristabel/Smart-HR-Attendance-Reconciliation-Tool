@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HR Dashboard — Food Angel Admin</title>
-    <meta name="description" content="HR Admin dashboard for managing staff attendance and leave requests">
+    <title>HR Dashboard — Food Angel Portal</title>
+    <meta name="description" content="HR Admin Dashboard for monitoring attendance and managing L2 approvals">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -220,7 +223,22 @@
             'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'Unpaid' }
         };
 
-        const ALL_STAFF = JSON.parse(localStorage.getItem('all_staff') || '[]');
+        let ALL_STAFF = [];
+        async function loadAllStaff() {
+            const { data } = await supabase
+                .from('users')
+                .select('*')
+                .neq('role', 'HR_ADMIN');
+            
+            ALL_STAFF = data ? data.map(u => ({
+                email: u.email,
+                fullName: u.full_name,
+                employeeId: u.employee_id || 'FA-0000',
+                staffType: u.staff_type,
+                location: u.location,
+                position: u.position || u.role
+            })) : [];
+        }
 
         // ── Sidebar ──
         function updateSidebar() {
@@ -238,40 +256,63 @@
         }
 
         // ── Overview Stats ──
-        function loadOverviewStats(locationFilter = 'ALL') {
+        async function loadOverviewStats(locationFilter = 'ALL') {
             const today = new Date().toISOString().split('T')[0];
-            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-
             const filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
             const staffEmails = filteredStaff.map(s => s.email);
 
-            const todayRecords = records.filter(r => r.date === today && staffEmails.includes(r.staffEmail));
-            const checkedIn = todayRecords.length;
-            const lateToday = todayRecords.filter(r => r.status === 'LATE').length;
+            if (staffEmails.length === 0) {
+                document.getElementById('statTotalStaff').textContent = 0;
+                document.getElementById('statCheckedIn').textContent = 0;
+                document.getElementById('statLateToday').textContent = 0;
+                document.getElementById('statPending').textContent = 0;
+                return;
+            }
+
+            const { data: todayRecords } = await supabase
+                .from('attendance_records')
+                .select('*')
+                .eq('date', today)
+                .in('staff_email', staffEmails);
+
+            const checkedIn = (todayRecords || []).length;
+            const lateToday = (todayRecords || []).filter(r => r.status === 'LATE').length;
             
-            // HR L2 pending = Supervisor approved but HR pending
-            const pendingLeaves = leaves.filter(l => staffEmails.includes(l.staffEmail) && l.hrApproval === 'PENDING' && l.supervisorApproval === 'APPROVED');
+            const { data: pendingLeaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .eq('supervisor_approval', 'APPROVED')
+                .eq('hr_approval', 'PENDING');
 
             document.getElementById('statTotalStaff').textContent = filteredStaff.length;
             document.getElementById('statCheckedIn').textContent = checkedIn;
             document.getElementById('statLateToday').textContent = lateToday;
-            document.getElementById('statPending').textContent = pendingLeaves.length;
+            document.getElementById('statPending').textContent = (pendingLeaves || []).length;
         }
 
         // ── Pending Leave Requests ──
-        function loadPendingLeaves(locationFilter = 'ALL') {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+        async function loadPendingLeaves(locationFilter = 'ALL') {
             const filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
             const staffEmails = filteredStaff.map(s => s.email);
-            
-            // Only show leaves waiting for HR approval (L1 already approved)
-            const pending = leaves.filter(l => staffEmails.includes(l.staffEmail) && l.hrApproval === 'PENDING' && l.supervisorApproval === 'APPROVED');
-            
             const tbody = document.getElementById('pendingBody');
-            document.getElementById('pendingCount').textContent = pending.length + ' pending L2';
+            
+            if (staffEmails.length === 0) {
+                document.getElementById('pendingCount').textContent = '0 pending L2';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending HR approvals!</td></tr>';
+                return;
+            }
 
-            if (pending.length === 0) {
+            const { data: pending } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .eq('supervisor_approval', 'APPROVED')
+                .eq('hr_approval', 'PENDING');
+            
+            document.getElementById('pendingCount').textContent = (pending || []).length + ' pending L2';
+
+            if (!pending || pending.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending HR approvals!</td></tr>';
                 return;
             }
@@ -279,18 +320,18 @@
             tbody.innerHTML = pending.map(l => {
                 const typeInfo = LEAVE_TYPES[l.type] || { icon: '<i class="fa-solid fa-file"></i>', name: l.type };
 
-                const startStr = new Date(l.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const endStr = new Date(l.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const startStr = new Date(l.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
 
-                const attachmentLink = l.attachmentName
+                const attachmentLink = l.attachment_name
                     ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 11px; color: var(--blue-600); display: block; margin-top: 4px;"><i class="fa-solid fa-paperclip"></i> View Note</a>`
                     : '';
 
                 return `
                     <tr>
-                        <td><strong>${l.staffName}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staffEmail}</span></td>
-                        <td><span style="font-size: 12px;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${l.staffLocation || '—'}</span></td>
+                        <td><strong>${l.staff_name}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staff_email}</span></td>
+                        <td><span style="font-size: 12px;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${l.staff_location || '—'}</span></td>
                         <td>${typeInfo.icon} ${typeInfo.name}<br>${attachmentLink}</td>
                         <td>${dateRange}</td>
                         <td><strong>${l.days}</strong></td>
@@ -313,32 +354,29 @@
             }).join('');
         }
 
-        function handleLeave(leaveId, l2Decision) {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const leave = leaves.find(l => l.id === leaveId);
+        async function handleLeave(leaveId, l2Decision) {
+            const { error } = await supabase.from('leave_requests')
+                .update({
+                    hr_approval: l2Decision,
+                    status: l2Decision
+                })
+                .eq('id', leaveId);
             
-            if (leave) {
-                leave.hrApproval = l2Decision;
-                leave.status = l2Decision; // Final status becomes HR decision
-                
-                localStorage.setItem('leave_requests', JSON.stringify(leaves));
-
+            if (!error) {
                 applyFilters();
-                
                 const action = l2Decision === 'APPROVED' ? '<i class="fa-solid fa-check"></i> Approved' : '<i class="fa-solid fa-xmark"></i> Rejected';
-                showToast(`${action}: ${leave.staffName}'s ${leave.type.toLowerCase()} leave`, l2Decision === 'APPROVED' ? 'success' : 'error');
+                showToast(`${action}: Leave request updated.`, l2Decision === 'APPROVED' ? 'success' : 'error');
+            } else {
+                showToast(`Failed to update leave request.`, 'error');
             }
         }
 
         // ── Staff Overview ──
-        function loadStaffOverview(locationFilter = 'ALL', searchQuery = '') {
+        async function loadStaffOverview(locationFilter = 'ALL', searchQuery = '') {
             const now = new Date();
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
             const today = now.toISOString().split('T')[0];
-
-            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
 
             let filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
             
@@ -357,31 +395,45 @@
                 return;
             }
 
+            const staffEmails = filteredStaff.map(s => s.email);
+
+            const firstDay = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
+            const lastDay = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
+
+            const { data: records } = await supabase
+                .from('attendance_records')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .gte('date', firstDay)
+                .lte('date', lastDay);
+
+            const { data: leaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .eq('status', 'APPROVED');
+
             tbody.innerHTML = filteredStaff.map(staff => {
-                const monthRecords = records.filter(r => {
-                    if (r.staffEmail !== staff.email) return false;
-                    const d = new Date(r.date);
-                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                });
+                const monthRecords = (records || []).filter(r => r.staff_email === staff.email);
 
-                const daysWorked = monthRecords.filter(r => r.checkOut).length;
+                const daysWorked = monthRecords.filter(r => r.check_out).length;
                 const lateCount = monthRecords.filter(r => r.status === 'LATE').length;
-                const totalHours = Math.round(monthRecords.reduce((s, r) => s + (r.hoursWorked || 0), 0));
+                const totalHours = Math.round(monthRecords.reduce((s, r) => s + (r.hours_worked || 0), 0));
 
-                const staffLeaves = leaves.filter(l => l.staffEmail === staff.email && l.status === 'APPROVED');
+                const staffLeaves = (leaves || []).filter(l => l.staff_email === staff.email);
                 const annualUsed = staffLeaves.filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
                 const medicalUsed = staffLeaves.filter(l => l.type === 'SICK').reduce((s, l) => s + l.days, 0);
 
-                const todayRecord = records.find(r => r.date === today && r.staffEmail === staff.email);
+                const todayRecord = monthRecords.find(r => r.date === today);
                 let todayBadge = '<span class="badge" style="background: var(--bg-body); color: var(--text-muted);">Not In</span>';
                 
                 // Check if on leave today
-                const onLeave = staffLeaves.find(l => l.startDate <= today && l.endDate >= today);
+                const onLeave = staffLeaves.find(l => l.start_date <= today && l.end_date >= today);
                 
                 if (onLeave) {
                     todayBadge = `<span class="badge blue"><i class="fa-solid fa-plane-departure"></i> On Leave</span>`;
                 } else if (todayRecord) {
-                    if (todayRecord.checkOut) {
+                    if (todayRecord.check_out) {
                         todayBadge = '<span class="badge green"><i class="fa-solid fa-check-double"></i> Done</span>';
                     } else {
                         todayBadge = todayRecord.status === 'LATE'
@@ -423,26 +475,33 @@
         }
 
         // ── All Leave History ──
-        function loadAllLeaves(locationFilter = 'ALL') {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+        async function loadAllLeaves(locationFilter = 'ALL') {
             const filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
             const staffEmails = filteredStaff.map(s => s.email);
-            
-            const filteredLeaves = leaves.filter(l => staffEmails.includes(l.staffEmail));
-            const sorted = filteredLeaves.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
             const tbody = document.getElementById('allLeavesBody');
-
-            if (sorted.length === 0) {
+            
+            if (staffEmails.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = sorted.map(l => {
+            const { data: leaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .order('submitted_at', { ascending: false });
+
+            if (!leaves || leaves.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = leaves.map(l => {
                 const typeInfo = LEAVE_TYPES[l.type] || { icon: '<i class="fa-solid fa-file"></i>', name: l.type };
-                const startStr = new Date(l.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const endStr = new Date(l.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const startStr = new Date(l.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
-                const submitted = new Date(l.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const submitted = new Date(l.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
                 // Overall Status Badge
                 let statusBadge = '';
@@ -454,15 +513,15 @@
                 // Chain Visual
                 const chainVisual = `
                     <div class="approval-chain">
-                        <div class="approval-step ${l.supervisorApproval === 'APPROVED' ? 'done' : (l.supervisorApproval === 'REJECTED' ? 'rejected' : 'current')}">L1</div>
+                        <div class="approval-step ${l.supervisor_approval === 'APPROVED' ? 'done' : (l.supervisor_approval === 'REJECTED' ? 'rejected' : 'current')}">L1</div>
                         <span class="approval-arrow">→</span>
-                        <div class="approval-step ${l.hrApproval === 'APPROVED' ? 'done' : (l.hrApproval === 'REJECTED' ? 'rejected' : (l.hrApproval === 'N/A' ? '' : (l.supervisorApproval === 'APPROVED' ? 'current' : '')))}">L2</div>
+                        <div class="approval-step ${l.hr_approval === 'APPROVED' ? 'done' : (l.hr_approval === 'REJECTED' ? 'rejected' : (l.hr_approval === 'N/A' ? '' : (l.supervisor_approval === 'APPROVED' ? 'current' : '')))}">L2</div>
                     </div>
                 `;
 
                 return `
                     <tr>
-                        <td><strong>${l.staffName}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staffLocation || '—'}</span></td>
+                        <td><strong>${l.staff_name}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staff_location || '—'}</span></td>
                         <td>${typeInfo.icon} ${typeInfo.name}</td>
                         <td>${dateRange}</td>
                         <td><strong>${l.days}</strong></td>
@@ -475,23 +534,22 @@
         }
 
         // ── Filtering logic ──
-        function applyFilters() {
+        async function applyFilters() {
             const loc = document.getElementById('locationFilter').value;
             const search = document.getElementById('staffSearch').value;
             
-            loadOverviewStats(loc);
-            loadPendingLeaves(loc);
-            loadStaffOverview(loc, search);
-            loadAllLeaves(loc);
+            await loadOverviewStats(loc);
+            await loadPendingLeaves(loc);
+            await loadStaffOverview(loc, search);
+            await loadAllLeaves(loc);
         }
 
         // ── Attachment Preview ──
-        function showPreview(leaveId) {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const leave = leaves.find(l => l.id === leaveId);
-            if (!leave || !leave.attachment) return;
+        async function showPreview(leaveId) {
+            const { data: leave } = await supabase.from('leave_requests').select('*').eq('id', leaveId).single();
+            if (!leave || !leave.attachment_url) return;
             
-            document.getElementById('previewImage').src = leave.attachment;
+            document.getElementById('previewImage').src = leave.attachment_url;
             document.getElementById('previewModal').classList.add('visible');
         }
 
@@ -513,9 +571,14 @@
         }
 
         // ── Init ──
-        updateSidebar();
-        updateDateDisplay();
-        applyFilters();
+        async function init() {
+            updateSidebar();
+            updateDateDisplay();
+            await loadAllStaff();
+            applyFilters();
+        }
+
+        init();
     </script>
 </body>
 </html>

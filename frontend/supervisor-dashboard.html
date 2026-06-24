@@ -7,6 +7,9 @@
     <meta name="description" content="Supervisor dashboard for managing team attendance and L1 approvals">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
 </head>
 <body>
     <div class="app-layout">
@@ -190,8 +193,20 @@
         };
 
         // Get all staff managed by this supervisor
-        const allStaff = JSON.parse(localStorage.getItem('all_staff') || '[]');
-        const myTeam = allStaff.filter(s => s.supervisorEmail === user.email);
+        let myTeam = [];
+        async function loadMyTeam() {
+            const { data } = await supabase
+                .from('users')
+                .select('*')
+                .eq('supervisor_email', user.email);
+            
+            myTeam = data ? data.map(u => ({
+                email: u.email,
+                fullName: u.full_name,
+                position: u.position || u.role,
+                location: u.location
+            })) : [];
+        }
 
         // ── Sidebar ──
         function updateSidebar() {
@@ -215,39 +230,50 @@
         }
 
         // ── Overview Stats ──
-        function loadOverviewStats() {
+        async function loadOverviewStats() {
             const today = new Date().toISOString().split('T')[0];
-            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-
-            // Filter records for my team today
             const teamEmails = myTeam.map(s => s.email);
-            const todayRecords = records.filter(r => r.date === today && teamEmails.includes(r.staffEmail));
+
+            if (teamEmails.length === 0) return;
+
+            // Fetch attendance
+            const { data: todayRecords } = await supabase
+                .from('attendance_records')
+                .select('*')
+                .eq('date', today)
+                .in('staff_email', teamEmails);
             
-            const checkedIn = todayRecords.length;
-            const lateToday = todayRecords.filter(r => r.status === 'LATE').length;
+            const checkedIn = (todayRecords || []).length;
+            const lateToday = (todayRecords || []).filter(r => r.status === 'LATE').length;
             
-            // Pending L1 leaves (status = PENDING, supervisorApproval = PENDING)
-            const pendingLeaves = leaves.filter(l => teamEmails.includes(l.staffEmail) && l.supervisorApproval === 'PENDING');
+            // Pending L1 leaves
+            const { data: pendingLeaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', teamEmails)
+                .eq('supervisor_approval', 'PENDING');
 
             document.getElementById('statTeamSize').textContent = myTeam.length;
             document.getElementById('statCheckedIn').textContent = checkedIn;
             document.getElementById('statLateToday').textContent = lateToday;
-            document.getElementById('statPending').textContent = pendingLeaves.length;
+            document.getElementById('statPending').textContent = (pendingLeaves || []).length;
         }
 
         // ── Pending Leave Requests ──
-        function loadPendingLeaves() {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+        async function loadPendingLeaves() {
             const teamEmails = myTeam.map(s => s.email);
-            
-            // Filter to only leaves from my team that need L1 approval
-            const pending = leaves.filter(l => teamEmails.includes(l.staffEmail) && l.supervisorApproval === 'PENDING');
+            if (teamEmails.length === 0) return;
+
+            const { data: pending } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', teamEmails)
+                .eq('supervisor_approval', 'PENDING');
             
             const tbody = document.getElementById('pendingBody');
             document.getElementById('pendingCount').textContent = pending.length + ' pending L1';
 
-            if (pending.length === 0) {
+            if (!pending || pending.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending approvals for your team!</td></tr>';
                 return;
             }
@@ -255,18 +281,18 @@
             tbody.innerHTML = pending.map(l => {
                 const typeInfo = LEAVE_TYPES[l.type] || { icon: '📄', name: l.type };
 
-                const startStr = new Date(l.startDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const endStr = new Date(l.endDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const startStr = new Date(l.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
 
-                const attachmentLink = l.attachmentName
+                const attachmentLink = l.attachment_name
                     ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 11px; color: var(--blue-600); display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;"><i class="fa-solid fa-paperclip"></i> View Note</a>`
                     : '';
 
                 return `
                     <tr>
-                        <td><strong>${l.staffName}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staffEmail}</span></td>
-                        <td><span style="font-size: 12px;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${l.staffLocation || '—'}</span></td>
+                        <td><strong>${l.staff_name}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staff_email}</span></td>
+                        <td><span style="font-size: 12px;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${l.staff_location || '—'}</span></td>
                         <td>${typeInfo.icon} ${typeInfo.name}</td>
                         <td>${dateRange}</td>
                         <td><strong>${l.days}</strong></td>
@@ -276,8 +302,8 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 6px;">
-                                <button class="btn btn-success" style="font-size: 11px; padding: 6px 12px;" onclick="handleLeave('${l.id}', 'APPROVED')"><i class="fa-solid fa-check" style="margin-right: 4px;"></i> L1 Approve</button>
-                                <button class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: var(--red-500); border-color: var(--red-500);" onclick="handleLeave('${l.id}', 'REJECTED')"><i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> Reject</button>
+                                <button class="btn btn-success" style="font-size: 11px; padding: 6px 12px;" onclick="handleLeave('${l.id}', 'APPROVED', '${l.type}', ${l.days})"><i class="fa-solid fa-check" style="margin-right: 4px;"></i> L1 Approve</button>
+                                <button class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: var(--red-500); border-color: var(--red-500);" onclick="handleLeave('${l.id}', 'REJECTED', '${l.type}', ${l.days})"><i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> Reject</button>
                             </div>
                         </td>
                     </tr>
@@ -285,47 +311,49 @@
             }).join('');
         }
 
-        function handleLeave(leaveId, l1Decision) {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const leave = leaves.find(l => l.id === leaveId);
-            
-            if (leave) {
-                leave.supervisorApproval = l1Decision;
-                
-                if (l1Decision === 'REJECTED') {
-                    // Fast-fail: if L1 rejects, the whole request is rejected
-                    leave.status = 'REJECTED';
-                    leave.hrApproval = 'N/A';
-                } else if (l1Decision === 'APPROVED') {
-                    // For Sick Leave (up to 2 days) maybe only L1 is needed, but we default to HR review for prototype
-                    // except if it's explicitly coded otherwise. Here we route to L2.
-                    if (leave.type === 'SICK' && leave.days <= 2) {
-                        leave.status = 'APPROVED'; // Auto-approve small sick leaves
-                        leave.hrApproval = 'N/A';
-                        showToast(`L1 Approved. No HR review needed for short sick leave.`, 'success');
-                    } else {
-                        leave.status = 'SUPERVISOR_APPROVED'; // Moves to HR
-                        showToast(`L1 Approved. Routed to HR for final L2 approval.`, 'success');
-                    }
+        async function handleLeave(leaveId, l1Decision, type, days) {
+            let status = 'PENDING';
+            let hrApproval = 'PENDING';
+
+            if (l1Decision === 'REJECTED') {
+                status = 'REJECTED';
+                hrApproval = 'N/A';
+            } else if (l1Decision === 'APPROVED') {
+                if (type === 'SICK' && days <= 2) {
+                    status = 'APPROVED';
+                    hrApproval = 'N/A';
+                } else {
+                    status = 'SUPERVISOR_APPROVED';
                 }
-                
-                localStorage.setItem('leave_requests', JSON.stringify(leaves));
+            }
+
+            const { error } = await supabase.from('leave_requests')
+                .update({
+                    supervisor_approval: l1Decision,
+                    status: status,
+                    hr_approval: hrApproval
+                })
+                .eq('id', leaveId);
+            
+            if (!error) {
+                if (l1Decision === 'APPROVED') {
+                    showToast(status === 'APPROVED' ? `L1 Approved. No HR review needed.` : `L1 Approved. Routed to HR.`, 'success');
+                } else {
+                    showToast(`Leave request rejected.`, 'error');
+                }
 
                 loadPendingLeaves();
                 loadOverviewStats();
                 loadTeamGrid();
-                
-                if (l1Decision === 'REJECTED') {
-                    showToast(`Rejected ${leave.staffName}'s leave request.`, 'error');
-                }
+            } else {
+                showToast(`Failed to update leave request.`, 'error');
             }
         }
 
         // ── Team Grid (Today's Status) ──
-        function loadTeamGrid() {
+        async function loadTeamGrid() {
             const today = new Date().toISOString().split('T')[0];
-            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
+            const teamEmails = myTeam.map(s => s.email);
             const grid = document.getElementById('teamGrid');
 
             if (myTeam.length === 0) {
@@ -333,16 +361,25 @@
                 return;
             }
 
+            const { data: records } = await supabase
+                .from('attendance_records')
+                .select('*')
+                .eq('date', today)
+                .in('staff_email', teamEmails);
+
+            const { data: leaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .eq('status', 'APPROVED')
+                .lte('start_date', today)
+                .gte('end_date', today)
+                .in('staff_email', teamEmails);
+
             grid.innerHTML = myTeam.map(staff => {
                 const initials = staff.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 
                 // Check if they are on leave today
-                const onLeave = leaves.find(l => 
-                    l.staffEmail === staff.email && 
-                    l.status === 'APPROVED' &&
-                    l.startDate <= today && 
-                    l.endDate >= today
-                );
+                const onLeave = (leaves || []).find(l => l.staff_email === staff.email);
 
                 let statusBadge = '';
                 let statusDetails = '';
@@ -350,20 +387,20 @@
                 if (onLeave) {
                     const typeInfo = LEAVE_TYPES[onLeave.type] || { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Leave' };
                     statusBadge = `<span class="badge blue">${typeInfo.icon} On Leave</span>`;
-                    statusDetails = `<div class="ec-detail">Return: ${new Date(onLeave.endDate).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div>`;
+                    statusDetails = `<div class="ec-detail">Return: ${new Date(onLeave.end_date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div>`;
                 } else {
-                    const todayRecord = records.find(r => r.date === today && r.staffEmail === staff.email);
+                    const todayRecord = (records || []).find(r => r.staff_email === staff.email);
                     if (!todayRecord) {
                         statusBadge = '<span class="badge" style="background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-light);">Not In Yet</span>';
                         statusDetails = `<div class="ec-detail">Expected shift</div>`;
-                    } else if (!todayRecord.checkOut) {
+                    } else if (!todayRecord.check_out) {
                         statusBadge = todayRecord.status === 'LATE' 
                             ? '<span class="badge amber"><i class="fa-solid fa-triangle-exclamation"></i> Late In</span>' 
                             : '<span class="badge green"><i class="fa-solid fa-check"></i> Checked In</span>';
-                        statusDetails = `<div class="ec-detail">In: ${todayRecord.checkIn}</div>`;
+                        statusDetails = `<div class="ec-detail">In: ${todayRecord.check_in}</div>`;
                     } else {
                         statusBadge = '<span class="badge green"><i class="fa-solid fa-check-double"></i> Completed</span>';
-                        statusDetails = `<div class="ec-detail">Out: ${todayRecord.checkOut} (${todayRecord.hoursWorked} hrs)</div>`;
+                        statusDetails = `<div class="ec-detail">Out: ${todayRecord.check_out} (${todayRecord.hours_worked} hrs)</div>`;
                     }
                 }
 
@@ -384,18 +421,23 @@
         }
 
         // ── Recent Team Activity ──
-        function loadRecentActivity() {
-            const records = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+        async function loadRecentActivity() {
             const teamEmails = myTeam.map(s => s.email);
-            
-            const teamRecords = records
-                .filter(r => teamEmails.includes(r.staffEmail))
-                .sort((a, b) => new Date(b.date) - new Date(a.date))
-                .slice(0, 10); // Last 10 records
-
             const tbody = document.getElementById('activityBody');
 
-            if (teamRecords.length === 0) {
+            if (teamEmails.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No recent activity from your team.</td></tr>';
+                return;
+            }
+
+            const { data: teamRecords } = await supabase
+                .from('attendance_records')
+                .select('*')
+                .in('staff_email', teamEmails)
+                .order('date', { ascending: false })
+                .limit(10);
+
+            if (!teamRecords || teamRecords.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No recent activity from your team.</td></tr>';
                 return;
             }
@@ -411,10 +453,10 @@
                 return `
                     <tr>
                         <td><strong>${dateStr}</strong></td>
-                        <td>${r.staffName}</td>
-                        <td>${r.checkIn || '—'}</td>
-                        <td>${r.checkOut || '<span style="color: var(--text-muted);">—</span>'}</td>
-                        <td>${r.hoursWorked ? r.hoursWorked + ' hrs' : '—'}</td>
+                        <td>${r.staff_name}</td>
+                        <td>${r.check_in || '—'}</td>
+                        <td>${r.check_out || '<span style="color: var(--text-muted);">—</span>'}</td>
+                        <td>${r.hours_worked ? r.hours_worked + ' hrs' : '—'}</td>
                         <td>${statusBadge}</td>
                     </tr>
                 `;
@@ -422,12 +464,11 @@
         }
 
         // ── Attachment Preview ──
-        function showPreview(leaveId) {
-            const leaves = JSON.parse(localStorage.getItem('leave_requests') || '[]');
-            const leave = leaves.find(l => l.id === leaveId);
-            if (!leave || !leave.attachment) return;
+        async function showPreview(leaveId) {
+            const { data: leave } = await supabase.from('leave_requests').select('*').eq('id', leaveId).single();
+            if (!leave || !leave.attachment_url) return;
 
-            document.getElementById('previewImage').src = leave.attachment;
+            document.getElementById('previewImage').src = leave.attachment_url;
             document.getElementById('previewModal').classList.add('visible');
         }
 
@@ -449,12 +490,17 @@
         }
 
         // ── Init ──
-        updateSidebar();
-        updateDateDisplay();
-        loadOverviewStats();
-        loadPendingLeaves();
-        loadTeamGrid();
-        loadRecentActivity();
+        async function init() {
+            updateSidebar();
+            updateDateDisplay();
+            await loadMyTeam();
+            loadOverviewStats();
+            loadPendingLeaves();
+            loadTeamGrid();
+            loadRecentActivity();
+        }
+
+        init();
     </script>
 </body>
 </html>
