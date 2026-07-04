@@ -114,30 +114,65 @@
                                 <div class="lt-name">Annual Leave</div>
                                 <div class="lt-balance" id="annualCardBalance">14 days remaining</div>
                             </div>
+                            <div class="leave-type-card" id="typeBirthday" onclick="selectLeaveType('BIRTHDAY')">
+                                <div class="lt-icon"><i class="fa-solid fa-cake-candles"></i></div>
+                                <div class="lt-name">Birthday Leave</div>
+                                <div class="lt-balance">1 day</div>
+                            </div>
                             <div class="leave-type-card" id="typeSick" onclick="selectLeaveType('SICK')">
                                 <div class="lt-icon"><i class="fa-solid fa-notes-medical"></i></div>
-                                <div class="lt-name">Sick Leave</div>
+                                <div class="lt-name">Full Pay Sick Leave</div>
                                 <div class="lt-balance" id="medicalCardBalance">12 days remaining</div>
+                            </div>
+                            <div class="leave-type-card" id="typeNoPaySick" onclick="selectLeaveType('NO_PAY_SICK')">
+                                <div class="lt-icon"><i class="fa-solid fa-thermometer"></i></div>
+                                <div class="lt-name">No Pay Sick Leave</div>
+                                <div class="lt-balance">Per company policy</div>
+                            </div>
+                            <div class="leave-type-card" id="typeSickAllowance" onclick="selectLeaveType('SICK_ALLOWANCE')">
+                                <div class="lt-icon"><i class="fa-solid fa-hand-holding-medical"></i></div>
+                                <div class="lt-name">4/5 Sick Leave Allowance</div>
+                                <div class="lt-balance">Per labour ordinance</div>
+                            </div>
+                            <div class="leave-type-card" id="typeCompensation" onclick="selectLeaveType('COMPENSATION')">
+                                <div class="lt-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                                <div class="lt-name">Compensation Leave</div>
+                                <div class="lt-balance">Per company policy</div>
+                            </div>
+                            <div class="leave-type-card" id="typeCompassionate" onclick="selectLeaveType('COMPASSIONATE')">
+                                <div class="lt-icon"><i class="fa-solid fa-dove"></i></div>
+                                <div class="lt-name">Compassionate</div>
+                                <div class="lt-balance">Per company policy</div>
+                            </div>
+                            <div class="leave-type-card" id="typeMarriage" onclick="selectLeaveType('MARRIAGE')">
+                                <div class="lt-icon"><i class="fa-solid fa-rings-wedding"></i></div>
+                                <div class="lt-name">Marriage Leave</div>
+                                <div class="lt-balance">3 days</div>
+                            </div>
+                            <div class="leave-type-card" id="typeMaternity" onclick="selectLeaveType('MATERNITY')">
+                                <div class="lt-icon"><i class="fa-solid fa-baby"></i></div>
+                                <div class="lt-name">Maternity Leave</div>
+                                <div class="lt-balance">Per labour ordinance</div>
+                            </div>
+                            <div class="leave-type-card" id="typePaternity" onclick="selectLeaveType('PATERNITY')">
+                                <div class="lt-icon"><i class="fa-solid fa-baby-carriage"></i></div>
+                                <div class="lt-name">Paternity Leave</div>
+                                <div class="lt-balance">Per labour ordinance</div>
+                            </div>
+                            <div class="leave-type-card" id="typeWFH" onclick="selectLeaveType('WFH')">
+                                <div class="lt-icon"><i class="fa-solid fa-house-laptop"></i></div>
+                                <div class="lt-name">Work From Home</div>
+                                <div class="lt-balance">2 days/month (SSP office only)</div>
+                            </div>
+                            <div class="leave-type-card" id="typeUnpaid" onclick="selectLeaveType('UNPAID')">
+                                <div class="lt-icon"><i class="fa-solid fa-ban"></i></div>
+                                <div class="lt-name">No Pay Leave</div>
+                                <div class="lt-balance">Per company policy</div>
                             </div>
                             <div class="leave-type-card" id="typePersonal" onclick="selectLeaveType('PERSONAL')">
                                 <div class="lt-icon"><i class="fa-solid fa-hourglass-half"></i></div>
                                 <div class="lt-name">Personal Leave</div>
                                 <div class="lt-balance" id="personalCardBalance">5 days remaining</div>
-                            </div>
-                            <div class="leave-type-card" id="typeMaternity" onclick="selectLeaveType('MATERNITY')">
-                                <div class="lt-icon"><i class="fa-solid fa-baby"></i></div>
-                                <div class="lt-name">Maternity / Paternity</div>
-                                <div class="lt-balance">As required</div>
-                            </div>
-                            <div class="leave-type-card" id="typeCompassionate" onclick="selectLeaveType('COMPASSIONATE')">
-                                <div class="lt-icon"><i class="fa-solid fa-dove"></i></div>
-                                <div class="lt-name">Compassionate</div>
-                                <div class="lt-balance">Up to 3 days/event</div>
-                            </div>
-                            <div class="leave-type-card" id="typeUnpaid" onclick="selectLeaveType('UNPAID')">
-                                <div class="lt-icon"><i class="fa-solid fa-ban"></i></div>
-                                <div class="lt-name">Unpaid Leave</div>
-                                <div class="lt-balance">Unlimited</div>
                             </div>
                         </div>
 
@@ -245,12 +280,19 @@
 
         // ── Constants ──
         const LEAVE_TYPES = {
-            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual Leave' },
-            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Sick Leave' },
-            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal Leave' },
-            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity/Paternity' },
-            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate' },
-            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'Unpaid Leave' }
+            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual Leave', code: 'AL' },
+            'BIRTHDAY': { icon: '<i class="fa-solid fa-cake-candles"></i>', name: 'Birthday Leave', code: 'BL' },
+            'COMPENSATION': { icon: '<i class="fa-solid fa-scale-balanced"></i>', name: 'Compensation Leave', code: 'CPL' },
+            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate', code: 'CL' },
+            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Full Pay Sick Leave', code: 'SL' },
+            'NO_PAY_SICK': { icon: '<i class="fa-solid fa-thermometer"></i>', name: 'No Pay Sick Leave', code: 'NSL' },
+            'SICK_ALLOWANCE': { icon: '<i class="fa-solid fa-hand-holding-medical"></i>', name: '4/5 Sick Allowance', code: 'SLA' },
+            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'No Pay Leave', code: 'NPL' },
+            'MARRIAGE': { icon: '<i class="fa-solid fa-rings-wedding"></i>', name: 'Marriage Leave', code: 'M' },
+            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity Leave', code: 'MML' },
+            'PATERNITY': { icon: '<i class="fa-solid fa-baby-carriage"></i>', name: 'Paternity Leave', code: 'PL' },
+            'WFH': { icon: '<i class="fa-solid fa-house-laptop"></i>', name: 'Work From Home', code: 'WFH' },
+            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal Leave', code: 'PER' }
         };
 
         // ── Sidebar ──
@@ -306,17 +348,25 @@
             
             const typeIdMap = {
                 'ANNUAL': 'typeAnnual',
-                'SICK': 'typeSick',
-                'PERSONAL': 'typePersonal',
-                'MATERNITY': 'typeMaternity',
+                'BIRTHDAY': 'typeBirthday',
+                'COMPENSATION': 'typeCompensation',
                 'COMPASSIONATE': 'typeCompassionate',
-                'UNPAID': 'typeUnpaid'
+                'SICK': 'typeSick',
+                'NO_PAY_SICK': 'typeNoPaySick',
+                'SICK_ALLOWANCE': 'typeSickAllowance',
+                'UNPAID': 'typeUnpaid',
+                'MARRIAGE': 'typeMarriage',
+                'MATERNITY': 'typeMaternity',
+                'PATERNITY': 'typePaternity',
+                'WFH': 'typeWFH',
+                'PERSONAL': 'typePersonal'
             };
             
             document.getElementById(typeIdMap[type]).classList.add('selected');
 
             // Show doctor note upload for sick or maternity leave
-            document.getElementById('uploadSection').style.display = (type === 'SICK' || type === 'MATERNITY') ? 'block' : 'none';
+            const needsDocs = ['SICK', 'NO_PAY_SICK', 'SICK_ALLOWANCE', 'MATERNITY'].includes(type);
+            document.getElementById('uploadSection').style.display = needsDocs ? 'block' : 'none';
         }
 
         // ── Date Calculation ──

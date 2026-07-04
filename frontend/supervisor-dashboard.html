@@ -184,12 +184,19 @@
 
         // ── Constants ──
         const LEAVE_TYPES = {
-            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual' },
-            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Sick' },
-            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal' },
-            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity' },
-            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate' },
-            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'Unpaid' }
+            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual', code: 'AL' },
+            'BIRTHDAY': { icon: '<i class="fa-solid fa-cake-candles"></i>', name: 'Birthday', code: 'BL' },
+            'COMPENSATION': { icon: '<i class="fa-solid fa-scale-balanced"></i>', name: 'Compensation', code: 'CPL' },
+            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate', code: 'CL' },
+            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Full Pay Sick', code: 'SL' },
+            'NO_PAY_SICK': { icon: '<i class="fa-solid fa-thermometer"></i>', name: 'No Pay Sick', code: 'NSL' },
+            'SICK_ALLOWANCE': { icon: '<i class="fa-solid fa-hand-holding-medical"></i>', name: '4/5 Sick Allowance', code: 'SLA' },
+            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'No Pay Leave', code: 'NPL' },
+            'MARRIAGE': { icon: '<i class="fa-solid fa-rings-wedding"></i>', name: 'Marriage', code: 'M' },
+            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity', code: 'MML' },
+            'PATERNITY': { icon: '<i class="fa-solid fa-baby-carriage"></i>', name: 'Paternity', code: 'PL' },
+            'WFH': { icon: '<i class="fa-solid fa-house-laptop"></i>', name: 'Work From Home', code: 'WFH' },
+            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal', code: 'PER' }
         };
 
         // Get all staff managed by this supervisor

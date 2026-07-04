@@ -331,7 +331,7 @@ erDiagram
     LEAVE_REQUESTS {
         UUID id PK
         UUID user_id FK
-        ENUM leave_type "ANNUAL | SICK | PERSONAL | MATERNITY | COMPASSIONATE | UNPAID"
+        ENUM leave_type "ANNUAL | BIRTHDAY | COMPENSATION | COMPASSIONATE | SICK | NO_PAY_SICK | SICK_ALLOWANCE | UNPAID | MARRIAGE | MATERNITY | PATERNITY | WFH | PERSONAL"
         DATE start_date
         DATE end_date
         BOOLEAN is_retrospective "true for after-the-fact sick leave"
@@ -710,15 +710,22 @@ stateDiagram-v2
 
 **Approval Rules:**
 
-| Leave Type | Level 1 (Supervisor) | Level 2 (HR Admin) | Doctor Note Required |
-|:--|:--:|:--:|:--:|
-| Annual Leave | ✅ | ✅ | ❌ |
-| Sick Leave (pre-approved) | ✅ | ❌ | ❌ |
-| Sick Leave (retrospective) | ✅ | ❌ | ✅ |
-| Personal Leave | ✅ | ✅ | ❌ |
-| Maternity Leave | ✅ | ✅ | ✅ |
-| Compassionate Leave | ✅ | ✅ | ❌ |
-| Unpaid Leave | ✅ | ✅ | ❌ |
+| Leave Type | Code | Level 1 (Supervisor) | Level 2 (HR Admin) | Doctor Note Required |
+|:--|:--:|:--:|:--:|:--:|
+| Annual Leave | AL | ✅ | ✅ | ❌ |
+| Birthday Leave | BL | ✅ | ❌ | ❌ |
+| Compensation Leave | CPL | ✅ | ✅ | ❌ |
+| Compassionate Leave | CL | ✅ | ✅ | ❌ |
+| Full Pay Sick Leave | SL | ✅ | ❌ | ❌ |
+| Full Pay Sick Leave (retrospective) | SL | ✅ | ❌ | ✅ |
+| No Pay Sick Leave | NSL | ✅ | ❌ | ❌ |
+| 4/5 Sick Leave Allowance | SLA | ✅ | ❌ | ✅ |
+| No Pay Leave | NPL | ✅ | ✅ | ❌ |
+| Marriage Leave | M | ✅ | ✅ | ❌ |
+| Maternity Leave | MML | ✅ | ✅ | ✅ |
+| Paternity Leave | PL | ✅ | ✅ | ❌ |
+| Work From Home | WFH | ✅ | ❌ | ❌ |
+| Personal Leave | PER | ✅ | ✅ | ❌ |
 
 ### 5.3 Implementation via Spring Security
 

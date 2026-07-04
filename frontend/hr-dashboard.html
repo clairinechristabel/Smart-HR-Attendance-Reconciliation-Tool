@@ -121,6 +121,8 @@
                                         <th>Type</th>
                                         <th>Dates</th>
                                         <th>Days</th>
+                                        <th>Used AL</th>
+                                        <th>AL Balance</th>
                                         <th>L1 Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -147,11 +149,11 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Employee</th>
-                                        <th>Location</th>
-                                        <th>Days Worked</th>
-                                        <th>Late Count</th>
-                                        <th>Total Hours</th>
+                                        <th>Employee & Location</th>
+                                        <th>Dept / Position</th>
+                                        <th>Attendance</th>
+                                        <th>Time Variances</th>
+                                        <th>Issues</th>
                                         <th>Leave Used</th>
                                         <th>Today</th>
                                     </tr>
@@ -178,6 +180,8 @@
                                         <th>Type</th>
                                         <th>Dates</th>
                                         <th>Days</th>
+                                        <th>Used AL</th>
+                                        <th>AL Balance</th>
                                         <th>Approval Chain</th>
                                         <th>Status</th>
                                         <th>Submitted</th>
@@ -215,12 +219,19 @@
 
         // ── Constants ──
         const LEAVE_TYPES = {
-            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual' },
-            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Sick' },
-            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal' },
-            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity' },
-            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate' },
-            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'Unpaid' }
+            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual', code: 'AL' },
+            'BIRTHDAY': { icon: '<i class="fa-solid fa-cake-candles"></i>', name: 'Birthday', code: 'BL' },
+            'COMPENSATION': { icon: '<i class="fa-solid fa-scale-balanced"></i>', name: 'Compensation', code: 'CPL' },
+            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate', code: 'CL' },
+            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Full Pay Sick', code: 'SL' },
+            'NO_PAY_SICK': { icon: '<i class="fa-solid fa-thermometer"></i>', name: 'No Pay Sick', code: 'NSL' },
+            'SICK_ALLOWANCE': { icon: '<i class="fa-solid fa-hand-holding-medical"></i>', name: '4/5 Sick Allowance', code: 'SLA' },
+            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'No Pay Leave', code: 'NPL' },
+            'MARRIAGE': { icon: '<i class="fa-solid fa-rings-wedding"></i>', name: 'Marriage', code: 'M' },
+            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity', code: 'MML' },
+            'PATERNITY': { icon: '<i class="fa-solid fa-baby-carriage"></i>', name: 'Paternity', code: 'PL' },
+            'WFH': { icon: '<i class="fa-solid fa-house-laptop"></i>', name: 'Work From Home', code: 'WFH' },
+            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal', code: 'PER' }
         };
 
         let ALL_STAFF = [];
@@ -236,6 +247,7 @@
                 employeeId: u.employee_id || 'FA-0000',
                 staffType: u.staff_type,
                 location: u.location,
+                department: u.department || '',
                 position: u.position || u.role
             })) : [];
         }
@@ -313,9 +325,17 @@
             document.getElementById('pendingCount').textContent = (pending || []).length + ' pending L2';
 
             if (!pending || pending.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending HR approvals!</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending HR approvals!</td></tr>';
                 return;
             }
+
+            // Fetch approved annual leaves for these staff to calculate balance
+            const { data: approvedLeaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .eq('type', 'ANNUAL')
+                .eq('status', 'APPROVED');
 
             tbody.innerHTML = pending.map(l => {
                 const typeInfo = LEAVE_TYPES[l.type] || { icon: '<i class="fa-solid fa-file"></i>', name: l.type };
@@ -328,6 +348,12 @@
                     ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 11px; color: var(--blue-600); display: block; margin-top: 4px;"><i class="fa-solid fa-paperclip"></i> View Note</a>`
                     : '';
 
+                // Calculate Used AL and AL Balance for this staff member
+                const staffALLeaves = (approvedLeaves || []).filter(al => al.staff_email === l.staff_email);
+                const usedAL = staffALLeaves.reduce((s, al) => s + al.days, 0);
+                const alEntitlement = l.annual_leave_entitlement || 14; // default 14 days
+                const alBalance = alEntitlement - usedAL;
+
                 return `
                     <tr>
                         <td><strong>${l.staff_name}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staff_email}</span></td>
@@ -335,6 +361,8 @@
                         <td>${typeInfo.icon} ${typeInfo.name}<br>${attachmentLink}</td>
                         <td>${dateRange}</td>
                         <td><strong>${l.days}</strong></td>
+                        <td style="font-size:12px;"><strong>${usedAL}</strong> days</td>
+                        <td style="font-size:12px;"><strong style="color: ${alBalance <= 2 ? 'var(--red-500)' : 'var(--green-600)'}">${alBalance}</strong> days</td>
                         <td>
                             <div class="approval-chain" style="margin-bottom: 4px;">
                                 <div class="approval-step done">L1: Supervisor <i class="fa-solid fa-check"></i></div>
@@ -391,7 +419,7 @@
             const tbody = document.getElementById('staffOverviewBody');
             
             if (filteredStaff.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No staff found matching filters.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 32px; color: var(--text-muted);">No staff found matching filters.</td></tr>';
                 return;
             }
 
@@ -418,7 +446,15 @@
 
                 const daysWorked = monthRecords.filter(r => r.check_out).length;
                 const lateCount = monthRecords.filter(r => r.status === 'LATE').length;
-                const totalHours = Math.round(monthRecords.reduce((s, r) => s + (r.hours_worked || 0), 0));
+                const totalHours = monthRecords.reduce((s, r) => s + (r.hours_worked || 0), 0);
+
+                // New columns: Late Arrival, Early Leave, OT totals
+                const totalLateMinutes = monthRecords.reduce((s, r) => s + (r.late_arrival_mins || 0), 0);
+                const totalEarlyMinutes = monthRecords.reduce((s, r) => s + (r.early_leave_mins || 0), 0);
+                const totalOTMinutes = monthRecords.reduce((s, r) => s + (r.overtime_mins || 0), 0);
+                const totalAbsent = monthRecords.filter(r => r.status === 'ABSENT').length;
+
+                const fmtMins = (m) => { const h = Math.floor(m / 60); const mm = m % 60; return h > 0 ? `${h}h ${mm}m` : `${mm}m`; };
 
                 const staffLeaves = (leaves || []).filter(l => l.staff_email === staff.email);
                 const annualUsed = staffLeaves.filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
@@ -448,24 +484,44 @@
                 else if (staff.staffType === 'PART_TIME') staffTypeBadge = '<span class="badge pt" style="font-size:9px; padding:2px 6px;">PT</span>';
                 else staffTypeBadge = '<span class="badge ft" style="font-size:9px; padding:2px 6px;">FT</span>';
 
+                // Department / Position display
+                const deptPosition = staff.department ? `${staff.department}<br><span style="font-size:11px;color:var(--text-muted);">${staff.position || '—'}</span>` : (staff.position || '—');
+
                 return `
                     <tr>
                         <td>
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <div>
                                     <strong>${staff.fullName}</strong> ${staffTypeBadge}<br>
-                                    <span style="font-size: 11px; color: var(--text-muted);">${staff.employeeId}</span>
+                                    <span style="font-size: 11px; color: var(--text-muted);">${staff.employeeId}</span><br>
+                                    <span style="font-size: 10px; color: var(--text-secondary);"><i class="fa-solid fa-location-dot"></i> ${staff.location}</span>
                                 </div>
                             </div>
                         </td>
-                        <td><span style="font-size: 11px;">${staff.location}</span></td>
-                        <td>${daysWorked}</td>
-                        <td>${lateCount > 0 ? '<span style="color: var(--amber-600); font-weight: 700;">' + lateCount + '</span>' : '0'}</td>
-                        <td>${totalHours} hrs</td>
+                        <td><span style="font-size: 11px;">${deptPosition}</span></td>
                         <td>
                             <div style="font-size: 11px;">
-                                <span style="color:var(--text-secondary);">AL:</span> <strong>${annualUsed}</strong> &nbsp;
-                                <span style="color:var(--text-secondary);">SL:</span> <strong>${medicalUsed}</strong>
+                                <div><strong>${daysWorked}</strong> days</div>
+                                <div style="color:var(--text-muted);">${totalHours > 0 ? totalHours.toFixed(1) + ' hrs' : '0 hrs'}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 11px;">
+                                <div><span style="color:var(--text-muted); display:inline-block; width: 35px;">Late:</span> ${totalLateMinutes > 0 ? '<span style="color:var(--amber-600); font-weight:600;">' + fmtMins(totalLateMinutes) + '</span>' : '0'}</div>
+                                <div><span style="color:var(--text-muted); display:inline-block; width: 35px;">Early:</span> ${totalEarlyMinutes > 0 ? '<span style="color:var(--amber-600); font-weight:600;">' + fmtMins(totalEarlyMinutes) + '</span>' : '0'}</div>
+                                <div><span style="color:var(--text-muted); display:inline-block; width: 35px;">OT:</span> ${totalOTMinutes > 0 ? '<span style="color:var(--green-600); font-weight:600;">' + fmtMins(totalOTMinutes) + '</span>' : '0'}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 11px;">
+                                <div><span style="color:var(--text-muted);">Late:</span> ${lateCount > 0 ? '<span style="color:var(--amber-600); font-weight:700;">' + lateCount + '</span>' : '0'} times</div>
+                                <div><span style="color:var(--text-muted);">Abs:</span> ${totalAbsent > 0 ? '<span style="color:var(--red-500); font-weight:700;">' + totalAbsent + '</span>' : '0'} days</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 11px;">
+                                <div><span style="color:var(--text-muted);">AL:</span> <strong>${annualUsed}</strong></div>
+                                <div><span style="color:var(--text-muted);">SL:</span> <strong>${medicalUsed}</strong></div>
                             </div>
                         </td>
                         <td>${todayBadge}</td>
@@ -481,7 +537,7 @@
             const tbody = document.getElementById('allLeavesBody');
             
             if (staffEmails.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
                 return;
             }
 
@@ -492,7 +548,7 @@
                 .order('submitted_at', { ascending: false });
 
             if (!leaves || leaves.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
                 return;
             }
 
@@ -519,12 +575,20 @@
                     </div>
                 `;
 
+                // Calculate Used AL and AL Balance for this staff member
+                const staffALLeaves = (leaves || []).filter(al => al.staff_email === l.staff_email && al.type === 'ANNUAL' && al.status === 'APPROVED');
+                const usedAL = staffALLeaves.reduce((s, al) => s + al.days, 0);
+                const alEntitlement = l.annual_leave_entitlement || 14; // default 14 days
+                const alBalance = alEntitlement - usedAL;
+
                 return `
                     <tr>
                         <td><strong>${l.staff_name}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staff_location || '—'}</span></td>
                         <td>${typeInfo.icon} ${typeInfo.name}</td>
                         <td>${dateRange}</td>
                         <td><strong>${l.days}</strong></td>
+                        <td style="font-size:12px;"><strong>${usedAL}</strong> days</td>
+                        <td style="font-size:12px;"><strong style="color: ${alBalance <= 2 ? 'var(--red-500)' : 'var(--green-600)'}">${alBalance}</strong> days</td>
                         <td>${chainVisual}</td>
                         <td>${statusBadge}</td>
                         <td>${submitted}</td>
