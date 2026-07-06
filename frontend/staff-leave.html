@@ -111,19 +111,19 @@
                             <label>Leave Type</label>
                             <select id="leaveTypeSelect" class="form-input" onchange="selectLeaveType(this.value)" style="cursor: pointer;">
                                 <option value="" disabled selected>— Select leave type —</option>
-                                <option value="ANNUAL">🏖️ Annual Leave (14 days remaining)</option>
-                                <option value="BIRTHDAY">🎂 Birthday Leave (1 day)</option>
-                                <option value="SICK">🏥 Full Pay Sick Leave (12 days remaining)</option>
-                                <option value="NO_PAY_SICK">🤒 No Pay Sick Leave (Per company policy)</option>
-                                <option value="SICK_ALLOWANCE">🩺 4/5 Sick Leave Allowance (Per labour ordinance)</option>
-                                <option value="COMPENSATION">⚖️ Compensation Leave (Per company policy)</option>
-                                <option value="COMPASSIONATE">🕊️ Compassionate Leave (Per company policy)</option>
-                                <option value="MARRIAGE">💍 Marriage Leave (3 days)</option>
-                                <option value="MATERNITY">👶 Maternity Leave (Per labour ordinance)</option>
-                                <option value="PATERNITY">👨‍👧 Paternity Leave (Per labour ordinance)</option>
-                                <option value="WFH">🏠 Work From Home (2 days/month, SSP office only)</option>
-                                <option value="UNPAID">🚫 No Pay Leave (Per company policy)</option>
-                                <option value="PERSONAL">⏳ Personal Leave (5 days remaining)</option>
+                                <option value="ANNUAL">Annual Leave — 14 days remaining</option>
+                                <option value="BIRTHDAY">Birthday Leave — 1 day</option>
+                                <option value="SICK">Full Pay Sick Leave — 12 days remaining</option>
+                                <option value="NO_PAY_SICK">No Pay Sick Leave — Per company policy</option>
+                                <option value="SICK_ALLOWANCE">4/5 Sick Leave Allowance — Per labour ordinance</option>
+                                <option value="COMPENSATION">Compensation Leave — Per company policy</option>
+                                <option value="COMPASSIONATE">Compassionate Leave — Per company policy</option>
+                                <option value="MARRIAGE">Marriage Leave — 3 days</option>
+                                <option value="MATERNITY">Maternity Leave — Per labour ordinance</option>
+                                <option value="PATERNITY">Paternity Leave — Per labour ordinance</option>
+                                <option value="WFH">Work From Home — 2 days/month (SSP office only)</option>
+                                <option value="UNPAID">No Pay Leave — Per company policy</option>
+                                <option value="PERSONAL">Personal Leave — 5 days remaining</option>
                             </select>
                         </div>
 
@@ -283,9 +283,9 @@
             // Update dropdown option text with real balances
             const select = document.getElementById('leaveTypeSelect');
             for (const opt of select.options) {
-                if (opt.value === 'ANNUAL') opt.textContent = `🏖️ Annual Leave (${annualRemain} days remaining)`;
-                if (opt.value === 'SICK') opt.textContent = `🏥 Full Pay Sick Leave (${medicalRemain} days remaining)`;
-                if (opt.value === 'PERSONAL') opt.textContent = `⏳ Personal Leave (${personalRemain} days remaining)`;
+                if (opt.value === 'ANNUAL') opt.textContent = `Annual Leave — ${annualRemain} days remaining`;
+                if (opt.value === 'SICK') opt.textContent = `Full Pay Sick Leave — ${medicalRemain} days remaining`;
+                if (opt.value === 'PERSONAL') opt.textContent = `Personal Leave — ${personalRemain} days remaining`;
             }
 
             // Animate bars
