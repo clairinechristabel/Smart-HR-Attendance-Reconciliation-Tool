@@ -14,41 +14,9 @@
 <body>
     <div class="app-layout">
 
-        <!-- ══════════ SIDEBAR ══════════ -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
-                <div class="brand-text">
-                    <span class="brand-name">Food Angel</span>
-                    <span class="brand-sub">Staff Portal</span>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <div class="sidebar-section-label">Menu</div>
-                <a href="staff-dashboard.html" class="sidebar-link">
-                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
-                </a>
-                <a href="staff-leave.html" class="sidebar-link">
-                    <span class="nav-icon"><i class="fa-solid fa-calendar-alt"></i></span> Leave Request
-                </a>
-                <a href="staff-profile.html" class="sidebar-link active">
-                    <span class="nav-icon"><i class="fa-solid fa-user"></i></span> My Profile
-                </a>
-
-                <div class="sidebar-section-label">Account</div>
-                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
-                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
-                </a>
-            </nav>
-
-            <div class="sidebar-user" style="cursor: pointer;" onclick="window.location.href='staff-profile.html'">
-                <div class="user-avatar" id="sidebarAvatar">LC</div>
-                <div class="user-info">
-                    <div class="user-name" id="sidebarName">Lisa Chan</div>
-                    <div class="user-role" id="sidebarRole">Kitchen Helper</div>
-                </div>
-            </div>
+        <!-- ══════════ SIDEBAR (dynamic based on role) ══════════ -->
+        <aside class="sidebar" id="dynamicSidebar">
+            <!-- Populated by JS based on logged-in user role -->
         </aside>
 
         <!-- ══════════ MAIN ══════════ -->
@@ -236,9 +204,73 @@
         function updateSidebar() {
             if (!user) return;
             const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('sidebarAvatar').textContent = initials;
-            document.getElementById('sidebarName').textContent = user.fullName;
-            document.getElementById('sidebarRole').textContent = user.position || user.department;
+            const isSupervisor = user.role === 'SUPERVISOR' || user.role === 'supervisor';
+            const sidebar = document.getElementById('dynamicSidebar');
+            
+            if (isSupervisor) {
+                sidebar.innerHTML = `
+                    <div class="sidebar-brand">
+                        <div class="brand-icon" style="background: linear-gradient(135deg, var(--blue-500), var(--teal-500));"><i class="fa-solid fa-utensils"></i></div>
+                        <div class="brand-text">
+                            <span class="brand-name">Food Angel</span>
+                            <span class="brand-sub">Supervisor Portal</span>
+                        </div>
+                    </div>
+                    <nav class="sidebar-nav">
+                        <div class="sidebar-section-label">Team Management</div>
+                        <a href="supervisor-dashboard.html" class="sidebar-link">
+                            <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
+                        </a>
+                        <a href="#" class="sidebar-link active">
+                            <span class="nav-icon"><i class="fa-solid fa-user"></i></span> Team Member Profile
+                        </a>
+                        <div class="sidebar-section-label">Account</div>
+                        <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                            <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
+                        </a>
+                    </nav>
+                    <div class="sidebar-user">
+                        <div class="user-avatar">${initials}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.fullName}</div>
+                            <div class="user-role">${user.position || 'Supervisor'}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                sidebar.innerHTML = `
+                    <div class="sidebar-brand">
+                        <div class="brand-icon"><i class="fa-solid fa-utensils"></i></div>
+                        <div class="brand-text">
+                            <span class="brand-name">Food Angel</span>
+                            <span class="brand-sub">Staff Portal</span>
+                        </div>
+                    </div>
+                    <nav class="sidebar-nav">
+                        <div class="sidebar-section-label">Menu</div>
+                        <a href="staff-dashboard.html" class="sidebar-link">
+                            <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
+                        </a>
+                        <a href="staff-leave.html" class="sidebar-link">
+                            <span class="nav-icon"><i class="fa-solid fa-calendar-alt"></i></span> Leave Request
+                        </a>
+                        <a href="staff-profile.html" class="sidebar-link active">
+                            <span class="nav-icon"><i class="fa-solid fa-user"></i></span> My Profile
+                        </a>
+                        <div class="sidebar-section-label">Account</div>
+                        <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                            <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
+                        </a>
+                    </nav>
+                    <div class="sidebar-user" style="cursor: pointer;" onclick="window.location.href='staff-profile.html'">
+                        <div class="user-avatar">${initials}</div>
+                        <div class="user-info">
+                            <div class="user-name">${user.fullName}</div>
+                            <div class="user-role">${user.position || user.department}</div>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // ── Profile Header ──

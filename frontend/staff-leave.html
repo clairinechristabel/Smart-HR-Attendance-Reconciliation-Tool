@@ -107,73 +107,24 @@
                     <div class="card-body">
 
                         <!-- Leave Type Selector -->
-                        <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">Leave Type</label>
-                        <div class="leave-type-options">
-                            <div class="leave-type-card" id="typeAnnual" onclick="selectLeaveType('ANNUAL')">
-                                <div class="lt-icon"><i class="fa-solid fa-plane-departure"></i></div>
-                                <div class="lt-name">Annual Leave</div>
-                                <div class="lt-balance" id="annualCardBalance">14 days remaining</div>
-                            </div>
-                            <div class="leave-type-card" id="typeBirthday" onclick="selectLeaveType('BIRTHDAY')">
-                                <div class="lt-icon"><i class="fa-solid fa-cake-candles"></i></div>
-                                <div class="lt-name">Birthday Leave</div>
-                                <div class="lt-balance">1 day</div>
-                            </div>
-                            <div class="leave-type-card" id="typeSick" onclick="selectLeaveType('SICK')">
-                                <div class="lt-icon"><i class="fa-solid fa-notes-medical"></i></div>
-                                <div class="lt-name">Full Pay Sick Leave</div>
-                                <div class="lt-balance" id="medicalCardBalance">12 days remaining</div>
-                            </div>
-                            <div class="leave-type-card" id="typeNoPaySick" onclick="selectLeaveType('NO_PAY_SICK')">
-                                <div class="lt-icon"><i class="fa-solid fa-thermometer"></i></div>
-                                <div class="lt-name">No Pay Sick Leave</div>
-                                <div class="lt-balance">Per company policy</div>
-                            </div>
-                            <div class="leave-type-card" id="typeSickAllowance" onclick="selectLeaveType('SICK_ALLOWANCE')">
-                                <div class="lt-icon"><i class="fa-solid fa-hand-holding-medical"></i></div>
-                                <div class="lt-name">4/5 Sick Leave Allowance</div>
-                                <div class="lt-balance">Per labour ordinance</div>
-                            </div>
-                            <div class="leave-type-card" id="typeCompensation" onclick="selectLeaveType('COMPENSATION')">
-                                <div class="lt-icon"><i class="fa-solid fa-scale-balanced"></i></div>
-                                <div class="lt-name">Compensation Leave</div>
-                                <div class="lt-balance">Per company policy</div>
-                            </div>
-                            <div class="leave-type-card" id="typeCompassionate" onclick="selectLeaveType('COMPASSIONATE')">
-                                <div class="lt-icon"><i class="fa-solid fa-dove"></i></div>
-                                <div class="lt-name">Compassionate</div>
-                                <div class="lt-balance">Per company policy</div>
-                            </div>
-                            <div class="leave-type-card" id="typeMarriage" onclick="selectLeaveType('MARRIAGE')">
-                                <div class="lt-icon"><i class="fa-solid fa-rings-wedding"></i></div>
-                                <div class="lt-name">Marriage Leave</div>
-                                <div class="lt-balance">3 days</div>
-                            </div>
-                            <div class="leave-type-card" id="typeMaternity" onclick="selectLeaveType('MATERNITY')">
-                                <div class="lt-icon"><i class="fa-solid fa-baby"></i></div>
-                                <div class="lt-name">Maternity Leave</div>
-                                <div class="lt-balance">Per labour ordinance</div>
-                            </div>
-                            <div class="leave-type-card" id="typePaternity" onclick="selectLeaveType('PATERNITY')">
-                                <div class="lt-icon"><i class="fa-solid fa-baby-carriage"></i></div>
-                                <div class="lt-name">Paternity Leave</div>
-                                <div class="lt-balance">Per labour ordinance</div>
-                            </div>
-                            <div class="leave-type-card" id="typeWFH" onclick="selectLeaveType('WFH')">
-                                <div class="lt-icon"><i class="fa-solid fa-house-laptop"></i></div>
-                                <div class="lt-name">Work From Home</div>
-                                <div class="lt-balance">2 days/month (SSP office only)</div>
-                            </div>
-                            <div class="leave-type-card" id="typeUnpaid" onclick="selectLeaveType('UNPAID')">
-                                <div class="lt-icon"><i class="fa-solid fa-ban"></i></div>
-                                <div class="lt-name">No Pay Leave</div>
-                                <div class="lt-balance">Per company policy</div>
-                            </div>
-                            <div class="leave-type-card" id="typePersonal" onclick="selectLeaveType('PERSONAL')">
-                                <div class="lt-icon"><i class="fa-solid fa-hourglass-half"></i></div>
-                                <div class="lt-name">Personal Leave</div>
-                                <div class="lt-balance" id="personalCardBalance">5 days remaining</div>
-                            </div>
+                        <div class="form-group">
+                            <label>Leave Type</label>
+                            <select id="leaveTypeSelect" class="form-input" onchange="selectLeaveType(this.value)" style="cursor: pointer;">
+                                <option value="" disabled selected>— Select leave type —</option>
+                                <option value="ANNUAL">🏖️ Annual Leave (14 days remaining)</option>
+                                <option value="BIRTHDAY">🎂 Birthday Leave (1 day)</option>
+                                <option value="SICK">🏥 Full Pay Sick Leave (12 days remaining)</option>
+                                <option value="NO_PAY_SICK">🤒 No Pay Sick Leave (Per company policy)</option>
+                                <option value="SICK_ALLOWANCE">🩺 4/5 Sick Leave Allowance (Per labour ordinance)</option>
+                                <option value="COMPENSATION">⚖️ Compensation Leave (Per company policy)</option>
+                                <option value="COMPASSIONATE">🕊️ Compassionate Leave (Per company policy)</option>
+                                <option value="MARRIAGE">💍 Marriage Leave (3 days)</option>
+                                <option value="MATERNITY">👶 Maternity Leave (Per labour ordinance)</option>
+                                <option value="PATERNITY">👨‍👧 Paternity Leave (Per labour ordinance)</option>
+                                <option value="WFH">🏠 Work From Home (2 days/month, SSP office only)</option>
+                                <option value="UNPAID">🚫 No Pay Leave (Per company policy)</option>
+                                <option value="PERSONAL">⏳ Personal Leave (5 days remaining)</option>
+                            </select>
                         </div>
 
                         <!-- Date Range -->
@@ -329,9 +280,13 @@
             document.getElementById('personalRemain').textContent = personalRemain;
             document.getElementById('personalDetail').textContent = `${personalUsed} used of 5`;
 
-            document.getElementById('annualCardBalance').textContent = `${annualRemain} days remaining`;
-            document.getElementById('medicalCardBalance').textContent = `${medicalRemain} days remaining`;
-            document.getElementById('personalCardBalance').textContent = `${personalRemain} days remaining`;
+            // Update dropdown option text with real balances
+            const select = document.getElementById('leaveTypeSelect');
+            for (const opt of select.options) {
+                if (opt.value === 'ANNUAL') opt.textContent = `🏖️ Annual Leave (${annualRemain} days remaining)`;
+                if (opt.value === 'SICK') opt.textContent = `🏥 Full Pay Sick Leave (${medicalRemain} days remaining)`;
+                if (opt.value === 'PERSONAL') opt.textContent = `⏳ Personal Leave (${personalRemain} days remaining)`;
+            }
 
             // Animate bars
             setTimeout(() => {
@@ -344,25 +299,6 @@
         // ── Leave Type Selection ──
         function selectLeaveType(type) {
             selectedType = type;
-            document.querySelectorAll('.leave-type-card').forEach(card => card.classList.remove('selected'));
-            
-            const typeIdMap = {
-                'ANNUAL': 'typeAnnual',
-                'BIRTHDAY': 'typeBirthday',
-                'COMPENSATION': 'typeCompensation',
-                'COMPASSIONATE': 'typeCompassionate',
-                'SICK': 'typeSick',
-                'NO_PAY_SICK': 'typeNoPaySick',
-                'SICK_ALLOWANCE': 'typeSickAllowance',
-                'UNPAID': 'typeUnpaid',
-                'MARRIAGE': 'typeMarriage',
-                'MATERNITY': 'typeMaternity',
-                'PATERNITY': 'typePaternity',
-                'WFH': 'typeWFH',
-                'PERSONAL': 'typePersonal'
-            };
-            
-            document.getElementById(typeIdMap[type]).classList.add('selected');
 
             // Show doctor note upload for sick or maternity leave
             const needsDocs = ['SICK', 'NO_PAY_SICK', 'SICK_ALLOWANCE', 'MATERNITY'].includes(type);
