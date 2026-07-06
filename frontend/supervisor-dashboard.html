@@ -415,7 +415,7 @@
                 }
 
                 return `
-                    <div class="employee-card" onclick="window.location.href='staff-profile.html'">
+                    <div class="employee-card" onclick="window.location.href='staff-profile.html?email=' + encodeURIComponent(staff.email)">
                         <div class="ec-avatar">${initials}</div>
                         <div class="ec-info">
                             <div class="ec-name">${staff.fullName}</div>

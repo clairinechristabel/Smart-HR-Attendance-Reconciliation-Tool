@@ -230,6 +230,7 @@
         // ── Auth guard ──
         const user = JSON.parse(localStorage.getItem('user') || 'null');
         if (!user) window.location.href = 'index.html';
+        let profileUser = user;
 
         // ── Sidebar ──
         function updateSidebar() {
@@ -242,25 +243,27 @@
 
         // ── Profile Header ──
         function populateProfile() {
-            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            const initials = profileUser.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
             document.getElementById('profileAvatar').textContent = initials;
-            document.getElementById('profileName').textContent = user.fullName;
-            document.getElementById('profileEmpId').textContent = user.employeeId;
-            document.getElementById('badgeRole').innerHTML = '<i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> ' + (user.position || 'Staff');
-            document.getElementById('badgeDept').innerHTML = '<i class="fa-solid fa-building" style="margin-right: 4px;"></i> ' + user.department;
+            document.getElementById('profileName').textContent = profileUser.fullName;
+            document.getElementById('profileEmpId').textContent = profileUser.employeeId || '—';
+            document.getElementById('badgeRole').innerHTML = '<i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> ' + (profileUser.position || 'Staff');
+            document.getElementById('badgeDept').innerHTML = '<i class="fa-solid fa-building" style="margin-right: 4px;"></i> ' + (profileUser.department || '—');
 
-            document.getElementById('infoEmail').textContent = user.email;
-            document.getElementById('infoPhone').textContent = user.phone || '—';
-            document.getElementById('infoEmpId').textContent = user.employeeId;
-            document.getElementById('infoDept').textContent = user.department;
-            document.getElementById('infoPosition').textContent = user.position || '—';
-            document.getElementById('infoLocation').textContent = user.location || '—';
+            document.getElementById('infoEmail').textContent = profileUser.email;
+            document.getElementById('infoPhone').textContent = profileUser.phone || '—';
+            document.getElementById('infoEmpId').textContent = profileUser.employeeId || '—';
+            document.getElementById('infoDept').textContent = profileUser.department || '—';
+            document.getElementById('infoPosition').textContent = profileUser.position || '—';
+            document.getElementById('infoLocation').textContent = profileUser.location || '—';
 
-            if (user.joinDate) {
-                const joinDate = new Date(user.joinDate + 'T00:00:00');
+            if (profileUser.joinDate) {
+                const joinDate = new Date(profileUser.joinDate + 'T00:00:00');
                 document.getElementById('infoJoinDate').textContent = joinDate.toLocaleDateString('en-US', {
                     year: 'numeric', month: 'short', day: 'numeric'
                 });
+            } else {
+                document.getElementById('infoJoinDate').textContent = '—';
             }
         }
 
@@ -287,7 +290,7 @@
             const { data: records } = await supabase
                 .from('attendance_records')
                 .select('*')
-                .eq('staff_email', user.email);
+                .eq('staff_email', profileUser.email);
             
             // Filter to selected month
             const monthRecords = (records || []).filter(r => {
@@ -333,7 +336,7 @@
             const { data: myLeaves } = await supabase
                 .from('leave_requests')
                 .select('*')
-                .eq('staff_email', user.email)
+                .eq('staff_email', profileUser.email)
                 .eq('status', 'APPROVED');
             
             const annualUsed = (myLeaves || []).filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
@@ -384,10 +387,39 @@
         }
 
         // ── Init ──
-        updateSidebar();
-        populateProfile();
-        populateMonthSelector();
-        loadMonthlyReport();
+        async function initPage() {
+            updateSidebar();
+            
+            const params = new URLSearchParams(window.location.search);
+            const targetEmail = params.get('email');
+            
+            if (targetEmail && targetEmail !== user.email) {
+                const { data } = await supabase.from('users').select('*').eq('email', targetEmail).single();
+                if (data) {
+                    profileUser = {
+                        email: data.email,
+                        fullName: data.full_name,
+                        employeeId: data.employee_id || '—',
+                        department: data.department || '—',
+                        position: data.position || data.role || '—',
+                        location: data.location || '—',
+                        phone: data.phone || '',
+                        joinDate: data.join_date || ''
+                    };
+                    
+                    // Update page title to show we are viewing someone else
+                    document.title = profileUser.fullName + " — Profile";
+                    document.querySelector('.breadcrumb').innerHTML = `Staff Portal › <a href="supervisor-dashboard.html">My Team</a> › <span>${profileUser.fullName}</span>`;
+                    document.querySelector('.top-bar h1').textContent = profileUser.fullName + "'s Profile";
+                }
+            }
+            
+            populateProfile();
+            populateMonthSelector();
+            loadMonthlyReport();
+        }
+        
+        initPage();
     </script>
 </body>
 </html>
