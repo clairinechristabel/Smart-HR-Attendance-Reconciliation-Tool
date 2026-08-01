@@ -407,6 +407,7 @@
         }
 
         // ── Staff Overview ──
+        let staffGridExpanded = false;
         async function loadStaffOverview(locationFilter = 'ALL', searchQuery = '') {
             const tbody = document.getElementById('staffOverviewBody');
             const now = new Date();
