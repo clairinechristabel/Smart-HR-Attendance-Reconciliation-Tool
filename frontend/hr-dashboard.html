@@ -675,6 +675,8 @@
                             location: u.location
                         };
                     });
+                    
+                    const restorePromises = [];
 
                     for (let i = 0; i < rows.length; i++) {
                         const rowStr = rows[i].map(c => String(c).trim());
@@ -729,11 +731,13 @@
                                 };
                                 allUsersMap[name.toLowerCase()] = matchedUser;
                             } else if (matchedUser.location === 'DELETED') {
-                                // Restore hidden user
-                                await supabase.from('users').update({
-                                    role: 'STAFF', 
-                                    location: 'Sham Shui Po Factory'
-                                }).eq('email', matchedUser.email);
+                                // Restore hidden user concurrently
+                                restorePromises.push(
+                                    supabase.from('users').update({
+                                        role: 'STAFF', 
+                                        location: 'Sham Shui Po Factory'
+                                    }).eq('email', matchedUser.email)
+                                );
                                 matchedUser.role = 'STAFF';
                                 matchedUser.location = 'Sham Shui Po Factory';
                             }
@@ -763,6 +767,11 @@
                     }
 
                     if (records.length > 0) {
+                        if (restorePromises.length > 0) {
+                            showToast(`Restoring ${restorePromises.length} accounts...`, 'info');
+                            await Promise.all(restorePromises);
+                        }
+                        
                         showToast(`Uploading ${records.length} records...`, 'info');
                         for (let i = 0; i < records.length; i += 50) {
                             await supabase.from('attendance_records').insert(records.slice(i, i + 50));
