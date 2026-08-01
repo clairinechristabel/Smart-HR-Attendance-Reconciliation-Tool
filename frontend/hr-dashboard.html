@@ -662,7 +662,19 @@
                     let currentDate = null;
                     const records = [];
                     const allUsersMap = {};
-                    allStaff.forEach(u => allUsersMap[u.fullName.toLowerCase()] = u);
+                    
+                    // Fetch ALL users directly from DB so we don't try to insert existing hidden users
+                    const { data: dbUsers } = await supabase.from('users').select('*');
+                    (dbUsers || []).forEach(u => {
+                        allUsersMap[u.full_name.toLowerCase()] = {
+                            id: u.id,
+                            fullName: u.full_name,
+                            email: u.email,
+                            role: u.role,
+                            staffType: u.staff_type,
+                            location: u.location
+                        };
+                    });
 
                     for (let i = 0; i < rows.length; i++) {
                         const rowStr = rows[i].map(c => String(c).trim());
@@ -703,7 +715,8 @@
                                     location: "Sham Shui Po Factory"
                                 };
                                 
-                                await supabase.from('users').insert([newUser]);
+                                const { error: insertErr } = await supabase.from('users').insert([newUser]);
+                                if (insertErr) console.warn("User insert error (possibly exists):", insertErr);
                                 
                                 matchedUser = {
                                     id: userId,
@@ -715,6 +728,14 @@
                                     contractedHours: 8.0
                                 };
                                 allUsersMap[name.toLowerCase()] = matchedUser;
+                            } else if (matchedUser.location === 'DELETED') {
+                                // Restore hidden user
+                                await supabase.from('users').update({
+                                    role: 'STAFF', 
+                                    location: 'Sham Shui Po Factory'
+                                }).eq('email', matchedUser.email);
+                                matchedUser.role = 'STAFF';
+                                matchedUser.location = 'Sham Shui Po Factory';
                             }
 
                             let hoursWorked = 0;
