@@ -377,11 +377,27 @@
                 const [inH, inM] = checkInTime.split(':').map(Number);
                 const checkInDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), inH, inM, 0);
                 const diffHours = Math.round(((now - checkInDate) / 1000 / 3600) * 10) / 10;
+                
+                let contractedHours = 8.0; // default
+                const { data: dbUser } = await supabase.from('users').select('contracted_hours_per_day, staff_type').eq('email', user.email).single();
+                if (dbUser) {
+                    if (dbUser.contracted_hours_per_day) {
+                        contractedHours = parseFloat(dbUser.contracted_hours_per_day);
+                    } else if (dbUser.staff_type === 'PART_TIME') {
+                        contractedHours = 4.0;
+                    }
+                }
+                
+                let overtimeMins = 0;
+                if (diffHours > contractedHours) {
+                    overtimeMins = Math.round((diffHours - contractedHours) * 60);
+                }
 
                 const { data, error } = await supabase.from('attendance_records')
                     .update({
                         check_out: timeStr,
-                        hours_worked: diffHours
+                        hours_worked: diffHours,
+                        overtime_mins: overtimeMins
                     })
                     .eq('id', currentRecordId)
                     .select()

@@ -7,8 +7,9 @@
     <meta name="description" content="HR Admin Dashboard for monitoring attendance and managing L2 approvals">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
-    <!-- Supabase -->
+    <!-- Supabase & SheetJS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="supabase-client.js?v=4"></script>
 </head>
 <body>
@@ -52,8 +53,14 @@
                     <div class="breadcrumb">HR Admin › <span>Dashboard</span></div>
                     <h1>Organization Overview</h1>
                 </div>
-                <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
-                    June 2026
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
+                        June 2026
+                    </div>
+                    <button class="btn btn-primary" onclick="document.getElementById('biometricUpload').click()">
+                        <i class="fa-solid fa-file-excel" style="margin-right: 6px;"></i> Upload Report
+                    </button>
+                    <input type="file" id="biometricUpload" accept=".xls,.xlsx" style="display: none;" onchange="handleBiometricUpload(event)">
                 </div>
             </div>
 
@@ -408,21 +415,6 @@
 
             let filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
             
-            if (searchQuery) {
-                const q = searchQuery.toLowerCase();
-                filteredStaff = filteredStaff.filter(s => 
-                    s.fullName.toLowerCase().includes(q) || 
-                    s.employeeId.toLowerCase().includes(q)
-                );
-            }
-
-            const tbody = document.getElementById('staffOverviewBody');
-            
-            if (filteredStaff.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 32px; color: var(--text-muted);">No staff found matching filters.</td></tr>';
-                return;
-            }
-
             const staffEmails = filteredStaff.map(s => s.email);
 
             const firstDay = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
@@ -441,7 +433,10 @@
                 .in('staff_email', staffEmails)
                 .eq('status', 'APPROVED');
 
-            tbody.innerHTML = filteredStaff.map(staff => {
+            const limit = staffGridExpanded ? filteredStaff.length : 10;
+            const visibleStaff = filteredStaff.slice(0, limit);
+
+            let html = visibleStaff.map(staff => {
                 const monthRecords = (records || []).filter(r => r.staff_email === staff.email);
 
                 const daysWorked = monthRecords.filter(r => r.check_out).length;
@@ -528,6 +523,20 @@
                     </tr>
                 `;
             }).join('');
+
+            if (filteredStaff.length > 10) {
+                html += `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 12px;">
+                            <button class="btn btn-outline" style="font-size: 12px; padding: 6px 16px;" onclick="staffGridExpanded=${!staffGridExpanded}; renderStaffOverview();">
+                                ${staffGridExpanded ? 'Show less' : 'See ' + (filteredStaff.length - 10) + ' more...'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = html;
         }
 
         // ── All Leave History ──
@@ -632,6 +641,126 @@
             toast.textContent = message;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ── Biometric Upload Logic ──
+        async function handleBiometricUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Reading Excel file...', 'info');
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
+                    
+                    let currentDate = null;
+                    const records = [];
+                    const allUsersMap = {};
+                    allStaff.forEach(u => allUsersMap[u.fullName.toLowerCase()] = u);
+
+                    for (let i = 0; i < rows.length; i++) {
+                        const rowStr = rows[i].map(c => String(c).trim());
+                        
+                        if (rowStr.includes("Date:")) {
+                            const dateIdx = rowStr.indexOf("Date:") + 1;
+                            let dateStr = "";
+                            for (let j = dateIdx; j < rowStr.length; j++) {
+                                if (rowStr[j]) { dateStr = rowStr[j]; break; }
+                            }
+                            if (dateStr) currentDate = dateStr;
+                        }
+
+                        const name = rowStr[0];
+                        if (name && name !== "User Name" && name !== "Daily In Out Report" && !rowStr.includes("Date:")) {
+                            let staffCode = rowStr.length > 4 ? rowStr[4] : "";
+                            const inTime = rowStr.length > 13 ? rowStr[13] : "";
+                            const outTimeVal = rowStr.length > 14 ? rowStr[14] : "";
+                            
+                            if (!inTime || inTime === "-") continue;
+                            const outTime = (outTimeVal && outTimeVal !== "-") ? outTimeVal : null;
+
+                            if (!staffCode) staffCode = "TEMP-" + records.length;
+
+                            let matchedUser = allUsersMap[name.toLowerCase()];
+                            if (!matchedUser) {
+                                let emailPrefix = name.replace(/[^\x00-\x7F]/g, "").trim().toLowerCase().replace(/\s+/g, ".");
+                                if (!emailPrefix) emailPrefix = "user_" + staffCode.toLowerCase();
+                                const email = emailPrefix + "@foodangel.hk";
+                                const userId = crypto.randomUUID();
+                                
+                                const newUser = {
+                                    id: userId,
+                                    full_name: name,
+                                    email: email,
+                                    role: "STAFF",
+                                    staff_type: "FULL_TIME",
+                                    location: "Sham Shui Po Factory"
+                                };
+                                
+                                await supabase.from('users').insert([newUser]);
+                                
+                                matchedUser = {
+                                    id: userId,
+                                    fullName: name,
+                                    email: email,
+                                    role: "STAFF",
+                                    staffType: "FULL_TIME",
+                                    location: "Sham Shui Po Factory",
+                                    contractedHours: 8.0
+                                };
+                                allUsersMap[name.toLowerCase()] = matchedUser;
+                            }
+
+                            let hoursWorked = 0;
+                            if (outTime) {
+                                const [inH, inM] = inTime.split(':').map(Number);
+                                const [outH, outM] = outTime.split(':').map(Number);
+                                let inTotal = inH * 60 + inM;
+                                let outTotal = outH * 60 + outM;
+                                if (outTotal < inTotal) outTotal += 24 * 60;
+                                hoursWorked = Math.round((outTotal - inTotal) / 60 * 10) / 10;
+                            }
+
+                            records.push({
+                                staff_email: matchedUser.email,
+                                staff_name: matchedUser.fullName,
+                                date: currentDate,
+                                check_in: inTime,
+                                check_out: outTime,
+                                status: "ON_TIME",
+                                method: "BIOMETRIC",
+                                hours_worked: outTime ? hoursWorked : null,
+                                staff_type: matchedUser.staffType || "FULL_TIME"
+                            });
+                        }
+                    }
+
+                    if (records.length > 0) {
+                        showToast(`Uploading ${records.length} records...`, 'info');
+                        for (let i = 0; i < records.length; i += 50) {
+                            await supabase.from('attendance_records').insert(records.slice(i, i + 50));
+                        }
+                        showToast(`Successfully processed and uploaded ${records.length} records!`, 'success');
+                        
+                        setTimeout(() => {
+                            loadAllStaff().then(() => applyFilters());
+                        }, 1000);
+                    } else {
+                        showToast("No valid records found in the file.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Error processing file.", "error");
+                }
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
         }
 
         // ── Init ──

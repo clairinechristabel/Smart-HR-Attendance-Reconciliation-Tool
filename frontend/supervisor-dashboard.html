@@ -91,11 +91,48 @@
                     </div>
                 </div>
 
+                <!-- ── Daily Absent Staff ── -->
+                <div class="card" style="margin-bottom: 24px; display: none;" id="absentStaffCard">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center;">
+                            <h2><i class="fa-solid fa-user-xmark" style="margin-right: 8px; color: var(--red-500);"></i> Daily Absent Staff (Not In Yet)</h2>
+                            <span class="badge red" id="absentCount" style="margin-left: 12px;">0</span>
+                        </div>
+                        <div class="search-bar" style="margin-bottom: 0; min-width: 200px;">
+                            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="absentSearch" placeholder="Search name..." onkeyup="renderAbsentStaff()">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Staff</th>
+                                        <th>Role</th>
+                                        <th>Location</th>
+                                        <th>Contact</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="absentBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ── L1 Pending Leave Requests ──── -->
                 <div class="card" style="margin-bottom: 24px;">
-                    <div class="card-header">
-                        <h2><i class="fa-solid fa-clipboard-check" style="margin-right: 8px;"></i> Action Required: Level 1 Approvals</h2>
-                        <span class="badge amber" id="pendingCount">0 pending</span>
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center;">
+                            <h2><i class="fa-solid fa-clipboard-check" style="margin-right: 8px;"></i> Action Required: Level 1 Approvals</h2>
+                            <span class="badge amber" id="pendingCount" style="margin-left: 12px;">0 pending</span>
+                        </div>
+                        <div class="search-bar" style="margin-bottom: 0; min-width: 200px;">
+                            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="pendingSearch" placeholder="Search name..." onkeyup="renderPendingLeaves()">
+                        </div>
                     </div>
                     <div class="card-body" style="padding: 0;">
                         <div class="table-wrapper">
@@ -121,10 +158,16 @@
 
                 <!-- ── Team Attendance Grid ── -->
                 <div class="card" style="margin-bottom: 24px;">
-                    <div class="card-header">
-                        <h2><i class="fa-solid fa-users-viewfinder" style="margin-right: 8px;"></i> My Team Status (Today)</h2>
-                        <div id="locationsFilter" style="display: flex; gap: 8px; font-size: 12px; color: var(--text-secondary);">
-                            <!-- Populated by JS -->
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <h2><i class="fa-solid fa-users-viewfinder" style="margin-right: 8px;"></i> My Team Status (Today)</h2>
+                            <div id="locationsFilter" style="display: flex; gap: 8px; font-size: 12px; color: var(--text-secondary);">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                        <div class="search-bar" style="margin-bottom: 0; min-width: 200px;">
+                            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="teamSearch" placeholder="Search name..." onkeyup="renderTeamGrid()">
                         </div>
                     </div>
                     <div class="card-body" style="padding: 20px;">
@@ -136,8 +179,12 @@
 
                 <!-- ── Recent Team Activity ───────── -->
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <h2><i class="fa-solid fa-clipboard-list" style="margin-right: 8px;"></i> Recent Team Activity</h2>
+                        <div class="search-bar" style="margin-bottom: 0; min-width: 200px;">
+                            <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="activitySearch" placeholder="Search name..." onkeyup="renderRecentActivity()">
+                        </div>
                     </div>
                     <div class="card-body" style="padding: 0;">
                         <div class="table-wrapper">
@@ -149,6 +196,7 @@
                                         <th>Check In</th>
                                         <th>Check Out</th>
                                         <th>Hours</th>
+                                        <th>Overtime</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -270,6 +318,7 @@
         }
 
         // ── Pending Leave Requests ──
+        let pendingLeavesData = [];
         async function loadPendingLeaves() {
             const teamEmails = myTeam.map(s => s.email);
             if (teamEmails.length === 0) return;
@@ -280,15 +329,22 @@
                 .in('staff_email', teamEmails)
                 .eq('supervisor_approval', 'PENDING');
             
-            const tbody = document.getElementById('pendingBody');
-            document.getElementById('pendingCount').textContent = pending.length + ' pending L1';
+            pendingLeavesData = pending || [];
+            document.getElementById('pendingCount').textContent = pendingLeavesData.length + ' pending L1';
+            renderPendingLeaves();
+        }
 
-            if (!pending || pending.length === 0) {
+        function renderPendingLeaves() {
+            const tbody = document.getElementById('pendingBody');
+            const term = (document.getElementById('pendingSearch')?.value || '').toLowerCase();
+            const filtered = pendingLeavesData.filter(l => l.staff_name.toLowerCase().includes(term));
+
+            if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending approvals for your team!</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = pending.map(l => {
+            tbody.innerHTML = filtered.map(l => {
                 const typeInfo = LEAVE_TYPES[l.type] || { icon: '📄', name: l.type };
 
                 const startStr = new Date(l.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -361,13 +417,16 @@
         }
 
         // ── Team Grid (Today's Status) ──
+        let teamGridExpanded = false;
+        let todayRecords = [];
+        let todayLeaves = [];
+
         async function loadTeamGrid() {
             const today = new Date().toISOString().split('T')[0];
             const teamEmails = myTeam.map(s => s.email);
-            const grid = document.getElementById('teamGrid');
 
-            if (myTeam.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 32px; color: var(--text-muted);">You currently have no assigned team members.</div>';
+            if (teamEmails.length === 0) {
+                renderTeamGrid();
                 return;
             }
 
@@ -384,12 +443,35 @@
                 .lte('start_date', today)
                 .gte('end_date', today)
                 .in('staff_email', teamEmails);
+            
+            todayRecords = records || [];
+            todayLeaves = leaves || [];
+            renderTeamGrid();
+        }
 
-            grid.innerHTML = myTeam.map(staff => {
+        function renderTeamGrid() {
+            const grid = document.getElementById('teamGrid');
+            if (myTeam.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 32px; color: var(--text-muted);">You currently have no assigned team members.</div>';
+                return;
+            }
+
+            const term = (document.getElementById('teamSearch')?.value || '').toLowerCase();
+            const filtered = myTeam.filter(s => s.fullName.toLowerCase().includes(term));
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 32px; color: var(--text-muted);">No team members found matching "${term}"</div>`;
+                return;
+            }
+
+            const limit = teamGridExpanded ? filtered.length : 9;
+            const visibleTeam = filtered.slice(0, limit);
+
+            let html = visibleTeam.map(staff => {
                 const initials = staff.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 
                 // Check if they are on leave today
-                const onLeave = (leaves || []).find(l => l.staff_email === staff.email);
+                const onLeave = todayLeaves.find(l => l.staff_email === staff.email);
 
                 let statusBadge = '';
                 let statusDetails = '';
@@ -399,7 +481,7 @@
                     statusBadge = `<span class="badge blue">${typeInfo.icon} On Leave</span>`;
                     statusDetails = `<div class="ec-detail">Return: ${new Date(onLeave.end_date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}</div>`;
                 } else {
-                    const todayRecord = (records || []).find(r => r.staff_email === staff.email);
+                    const todayRecord = todayRecords.find(r => r.staff_email === staff.email);
                     if (!todayRecord) {
                         statusBadge = '<span class="badge" style="background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-light);">Not In Yet</span>';
                         statusDetails = `<div class="ec-detail">Expected shift</div>`;
@@ -428,15 +510,25 @@
                     </div>
                 `;
             }).join('');
+
+            if (filtered.length > 9) {
+                html += `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 12px; margin-top: 12px;">
+                        <button class="btn btn-outline" style="font-size: 12px; padding: 6px 16px;" onclick="teamGridExpanded=${!teamGridExpanded}; renderTeamGrid();">${teamGridExpanded ? 'Show less' : 'See ' + (filtered.length - 9) + ' more...'}</button>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
         }
 
         // ── Recent Team Activity ──
+        let activityData = [];
         async function loadRecentActivity() {
             const teamEmails = myTeam.map(s => s.email);
-            const tbody = document.getElementById('activityBody');
 
             if (teamEmails.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No recent activity from your team.</td></tr>';
+                renderRecentActivity();
                 return;
             }
 
@@ -445,20 +537,37 @@
                 .select('*')
                 .in('staff_email', teamEmails)
                 .order('date', { ascending: false })
-                .limit(10);
+                .limit(50); // fetch more for search
 
-            if (!teamRecords || teamRecords.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">No recent activity from your team.</td></tr>';
+            activityData = teamRecords || [];
+            renderRecentActivity();
+        }
+
+        function renderRecentActivity() {
+            const tbody = document.getElementById('activityBody');
+            
+            if (activityData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No recent activity from your team.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = teamRecords.map(r => {
+            const term = (document.getElementById('activitySearch')?.value || '').toLowerCase();
+            const filtered = activityData.filter(r => r.staff_name.toLowerCase().includes(term)).slice(0, 10);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No recent activity found matching "${term}"</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(r => {
                 const dateObj = new Date(r.date + 'T00:00:00');
                 const dateStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
                 
                 const statusBadge = r.status === 'LATE'
                     ? '<span class="badge amber"><i class="fa-solid fa-triangle-exclamation"></i> Late</span>'
                     : '<span class="badge green"><i class="fa-solid fa-check"></i> On Time</span>';
+                
+                const otStr = r.overtime_mins && r.overtime_mins > 0 ? `<span style="color: var(--amber-600); font-weight: 600;">+${r.overtime_mins}m</span>` : '<span style="color: var(--text-muted);">—</span>';
                 
                 return `
                     <tr>
@@ -467,6 +576,7 @@
                         <td>${r.check_in || '—'}</td>
                         <td>${r.check_out || '<span style="color: var(--text-muted);">—</span>'}</td>
                         <td>${r.hours_worked ? r.hours_worked + ' hrs' : '—'}</td>
+                        <td>${otStr}</td>
                         <td>${statusBadge}</td>
                     </tr>
                 `;
@@ -499,12 +609,90 @@
             setTimeout(() => toast.remove(), 4000);
         }
 
+        // ── Daily Absent Staff ──
+        let absentStaffData = [];
+        let absentStaffExpanded = false;
+
+        async function loadAbsentStaff() {
+            const today = new Date().toISOString().split('T')[0];
+            const teamEmails = myTeam.map(s => s.email);
+            
+            if (teamEmails.length === 0) return;
+
+            const { data: records } = await supabase.from('attendance_records').select('staff_email').eq('date', today).in('staff_email', teamEmails);
+            const { data: leaves } = await supabase.from('leave_requests').select('staff_email').eq('status', 'APPROVED').lte('start_date', today).gte('end_date', today).in('staff_email', teamEmails);
+
+            absentStaffData = myTeam.filter(staff => {
+                const hasRecord = (records || []).find(r => r.staff_email === staff.email);
+                const onLeave = (leaves || []).find(l => l.staff_email === staff.email);
+                return !hasRecord && !onLeave;
+            });
+
+            document.getElementById('absentCount').textContent = absentStaffData.length + ' absent';
+            renderAbsentStaff();
+        }
+
+        function renderAbsentStaff() {
+            const tbody = document.getElementById('absentBody');
+            const card = document.getElementById('absentStaffCard');
+            
+            const term = (document.getElementById('absentSearch')?.value || '').toLowerCase();
+            const filtered = absentStaffData.filter(s => s.fullName.toLowerCase().includes(term));
+            
+            if (filtered.length === 0 && absentStaffData.length > 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 16px; color: var(--text-muted);">No staff found matching "${term}"</td></tr>`;
+                card.style.display = 'block';
+                return;
+            }
+
+            if (absentStaffData.length === 0) {
+                card.style.display = 'none';
+                return;
+            }
+            
+            card.style.display = 'block';
+
+            const limit = absentStaffExpanded ? filtered.length : 10;
+            const visibleStaff = filtered.slice(0, limit);
+
+            let html = visibleStaff.map(staff => `
+                <tr>
+                    <td><strong>${staff.fullName}</strong></td>
+                    <td>${staff.position || '—'}</td>
+                    <td><i class="fa-solid fa-location-dot" style="margin-right: 4px; color: var(--text-muted);"></i> ${staff.location || '—'}</td>
+                    <td><a href="mailto:${staff.email}" style="color: var(--blue-600); font-size: 13px;">${staff.email}</a></td>
+                </tr>
+            `).join('');
+
+            if (filtered.length > 10) {
+                if (!absentStaffExpanded) {
+                    html += `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 12px;">
+                                <button class="btn btn-outline" style="font-size: 12px; padding: 6px 16px;" onclick="absentStaffExpanded=true; renderAbsentStaff();">See ${filtered.length - 10} more...</button>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    html += `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 12px;">
+                                <button class="btn btn-outline" style="font-size: 12px; padding: 6px 16px;" onclick="absentStaffExpanded=false; renderAbsentStaff();">Show less</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            tbody.innerHTML = html;
+        }
+
         // ── Init ──
         async function init() {
             updateSidebar();
             updateDateDisplay();
             await loadMyTeam();
             loadOverviewStats();
+            loadAbsentStaff();
             loadPendingLeaves();
             loadTeamGrid();
             loadRecentActivity();
