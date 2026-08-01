@@ -408,6 +408,7 @@
 
         // ── Staff Overview ──
         async function loadStaffOverview(locationFilter = 'ALL', searchQuery = '') {
+            const tbody = document.getElementById('staffOverviewBody');
             const now = new Date();
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
