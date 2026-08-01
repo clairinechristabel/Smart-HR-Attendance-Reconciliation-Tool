@@ -420,18 +420,28 @@
             const firstDay = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
             const lastDay = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
 
-            const { data: records } = await supabase
+            let recordsQuery = supabase
                 .from('attendance_records')
                 .select('*')
-                .in('staff_email', staffEmails)
                 .gte('date', firstDay)
                 .lte('date', lastDay);
+            
+            if (locationFilter !== 'ALL') {
+                recordsQuery = recordsQuery.in('staff_email', staffEmails);
+            }
+            
+            const { data: records } = await recordsQuery;
 
-            const { data: leaves } = await supabase
+            let leavesQuery = supabase
                 .from('leave_requests')
                 .select('*')
-                .in('staff_email', staffEmails)
                 .eq('status', 'APPROVED');
+                
+            if (locationFilter !== 'ALL') {
+                leavesQuery = leavesQuery.in('staff_email', staffEmails);
+            }
+            
+            const { data: leaves } = await leavesQuery;
 
             const limit = staffGridExpanded ? filteredStaff.length : 10;
             const visibleStaff = filteredStaff.slice(0, limit);
@@ -528,7 +538,7 @@
                 html += `
                     <tr>
                         <td colspan="7" style="text-align: center; padding: 12px;">
-                            <button class="btn btn-outline" style="font-size: 12px; padding: 6px 16px;" onclick="staffGridExpanded=${!staffGridExpanded}; renderStaffOverview();">
+                            <button class="btn btn-outline" style="font-size: 12px; padding: 6px 16px;" onclick="staffGridExpanded=${!staffGridExpanded}; loadStaffOverview('${locationFilter}', '${searchQuery}');">
                                 ${staffGridExpanded ? 'Show less' : 'See ' + (filteredStaff.length - 10) + ' more...'}
                             </button>
                         </td>
@@ -550,11 +560,16 @@
                 return;
             }
 
-            const { data: leaves } = await supabase
+            let allLeavesQuery = supabase
                 .from('leave_requests')
                 .select('*')
-                .in('staff_email', staffEmails)
                 .order('submitted_at', { ascending: false });
+                
+            if (locationFilter !== 'ALL') {
+                allLeavesQuery = allLeavesQuery.in('staff_email', staffEmails);
+            }
+
+            const { data: leaves } = await allLeavesQuery;
 
             if (!leaves || leaves.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
