@@ -270,13 +270,13 @@
 
         // ── Date ──
         function updateDateDisplay() {
-            const now = new Date();
+            const now = new Date('2026-06-10T12:00:00Z');
             document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right: 6px;"></i>' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
 
         // ── Overview Stats ──
         async function loadOverviewStats(locationFilter = 'ALL') {
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date('2026-06-10T12:00:00Z').toISOString().split('T')[0];
             const filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
             const staffEmails = filteredStaff.map(s => s.email);
 
@@ -410,7 +410,7 @@
         let staffGridExpanded = false;
         async function loadStaffOverview(locationFilter = 'ALL', searchQuery = '') {
             const tbody = document.getElementById('staffOverviewBody');
-            const now = new Date();
+            const now = new Date('2026-06-10T12:00:00Z');
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
             const today = now.toISOString().split('T')[0];
@@ -710,6 +710,8 @@
                         const name = rowStr[0];
                         if (name && name !== "User Name" && name !== "Daily In Out Report" && !rowStr.includes("Date:")) {
                             let staffCode = rowStr.length > 4 ? rowStr[4] : "";
+                            let dept = rowStr.length > 6 ? rowStr[6] : "";
+                            let position = rowStr.length > 8 ? rowStr[8] : "";
                             const inTime = rowStr.length > 13 ? rowStr[13] : "";
                             const outTimeVal = rowStr.length > 14 ? rowStr[14] : "";
                             
@@ -731,7 +733,10 @@
                                     email: email,
                                     role: "STAFF",
                                     staff_type: "FULL_TIME",
-                                    location: "Sham Shui Po Factory"
+                                    location: "Sham Shui Po Factory",
+                                    department: dept,
+                                    position: position,
+                                    employee_id: staffCode
                                 };
                                 
                                 const { error: insertErr } = await supabase.from('users').insert([newUser]);
