@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Summary — Food Angel Portal</title>
+    <meta name="description" content="Team analytics and insights summary for supervisors">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js?v=4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon" style="background: linear-gradient(135deg, var(--blue-500), var(--teal-500));"><i class="fa-solid fa-utensils"></i></div>
+                <div class="brand-text">
+                    <span class="brand-name">Food Angel</span>
+                    <span class="brand-sub">Supervisor Portal</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Team Management</div>
+                <a href="supervisor-dashboard.html" class="sidebar-link">
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> Dashboard
+                </a>
+                <a href="supervisor-summary.html" class="sidebar-link active">
+                    <span class="nav-icon"><i class="fa-solid fa-chart-bar"></i></span> Summary
+                </a>
+                <div class="sidebar-section-label">Account</div>
+                <a href="index.html" class="sidebar-link" onclick="localStorage.clear()">
+                    <span class="nav-icon"><i class="fa-solid fa-sign-out-alt"></i></span> Sign Out
+                </a>
+            </nav>
+            <div class="sidebar-user">
+                <div class="user-avatar" id="sidebarAvatar">DW</div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarName">David Wong</div>
+                    <div class="user-role" id="sidebarRole">Supervisor</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-bar">
+                <div>
+                    <div class="breadcrumb">Supervisor Portal › <span>Summary</span></div>
+                    <h1>Team Insights &amp; Analytics</h1>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:12px;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border-light);padding:5px 14px;border-radius:20px;">
+                        <i class="fa-regular fa-calendar" style="margin-right:6px;"></i>Last 30 days
+                    </span>
+                    <div style="font-size:13px;color:var(--text-secondary);" id="todayDate"></div>
+                </div>
+            </div>
+
+            <div class="page-content">
+                <!-- KPI Cards -->
+                <div class="stats-row" style="margin-bottom:24px;">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Avg Daily Attendance</div>
+                            <div class="stat-value" id="kpiAvgAttendance">—</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber"><i class="fa-solid fa-clock"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Late Arrival Rate</div>
+                            <div class="stat-value" id="kpiLateRate">—</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="fa-solid fa-fire"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Overtime</div>
+                            <div class="stat-value" id="kpiTotalOT">—</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Avg Hours / Day</div>
+                            <div class="stat-value" id="kpiAvgHours">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 1 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                    <div class="card">
+                        <div class="card-header"><h2><i class="fa-solid fa-calendar-check" style="margin-right:8px;color:#3b82f6;"></i> Attendance Trend</h2></div>
+                        <div class="card-body">
+                            <canvas id="chartAttendance" height="200"></canvas>
+                            <div id="insightAttendance" class="insight-box" style="border-left-color:#3b82f6;"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h2><i class="fa-solid fa-clock" style="margin-right:8px;color:#f59e0b;"></i> Late Arrivals by Day of Week</h2></div>
+                        <div class="card-body">
+                            <canvas id="chartLateByDay" height="200"></canvas>
+                            <div id="insightLateDay" class="insight-box" style="border-left-color:#f59e0b;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+                    <div class="card">
+                        <div class="card-header"><h2><i class="fa-solid fa-fire" style="margin-right:8px;color:#ef4444;"></i> Overtime Leaderboard</h2></div>
+                        <div class="card-body" id="overtimeChartWrapper">
+                            <canvas id="chartOvertime" height="220"></canvas>
+                            <div id="insightOvertime" class="insight-box" style="border-left-color:#ef4444;"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h2><i class="fa-solid fa-user-xmark" style="margin-right:8px;color:#ef4444;"></i> Absence Frequency</h2></div>
+                        <div class="card-body" style="padding:0;">
+                            <div style="max-height:300px;overflow-y:auto;">
+                                <table class="data-table" style="font-size:12px;">
+                                    <thead><tr><th>#</th><th>Staff</th><th>Absent Days</th><th>Rate</th></tr></thead>
+                                    <tbody id="absenceLeaderboard"></tbody>
+                                </table>
+                            </div>
+                            <div id="insightAbsence" class="insight-box" style="margin:12px;border-left-color:#ef4444;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Heatmap -->
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-header"><h2><i class="fa-solid fa-table-cells" style="margin-right:8px;color:#14b8a6;"></i> Day-of-Week Absence Heatmap</h2></div>
+                    <div class="card-body" style="overflow-x:auto;">
+                        <div id="heatmapContainer"></div>
+                        <div id="insightHeatmap" class="insight-box" style="margin-top:12px;border-left-color:#14b8a6;"></div>
+                    </div>
+                </div>
+
+                <!-- Row 4: Hours -->
+                <div class="card">
+                    <div class="card-header"><h2><i class="fa-solid fa-chart-line" style="margin-right:8px;color:#10b981;"></i> Average Working Hours Trend</h2></div>
+                    <div class="card-body">
+                        <canvas id="chartHours" height="160"></canvas>
+                        <div id="insightHours" class="insight-box" style="border-left-color:#10b981;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .insight-box {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-body);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left: 3px solid #94a3b8;
+            line-height: 1.6;
+            min-height: 34px;
+        }
+    </style>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user || user.role !== 'SUPERVISOR') window.location.href = 'index.html';
+
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || 'Supervisor';
+        }
+
+        function updateDateDisplay() {
+            const now = new Date('2026-06-10T12:00:00Z');
+            document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right:6px;"></i>' +
+                now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        let myTeam = [];
+        async function loadMyTeam() {
+            if (!user.managedLocations || user.managedLocations.length === 0) return;
+            const { data } = await supabase
+                .from('users').select('*')
+                .in('location', user.managedLocations)
+                .neq('email', user.email);
+            myTeam = (data || []).map(u => ({
+                email: u.email, fullName: u.full_name,
+                position: u.position || u.role, location: u.location
+            }));
+        }
+
+        let analyticsRecords = [];
+        let analyticsCharts = {};
+        const TODAY_DATE = new Date('2026-06-10T12:00:00Z');
+
+        async function loadAnalytics() {
+            if (myTeam.length === 0) {
+                document.querySelector('.page-content').innerHTML =
+                    '<div style="text-align:center;padding:60px;color:var(--text-muted);"><i class="fa-solid fa-users-slash" style="font-size:40px;margin-bottom:16px;display:block;"></i>No team members assigned to your locations.</div>';
+                return;
+            }
+            const teamEmails = myTeam.map(s => s.email);
+            const startDate = new Date(TODAY_DATE);
+            startDate.setDate(startDate.getDate() - 29);
+
+            const { data } = await supabase
+                .from('attendance_records').select('*')
+                .in('staff_email', teamEmails)
+                .gte('date', startDate.toISOString().split('T')[0])
+                .lte('date', TODAY_DATE.toISOString().split('T')[0])
+                .order('date', { ascending: true });
+
+            analyticsRecords = data || [];
+
+            computeKPIs(startDate);
+            renderAttendanceChart(startDate);
+            renderLateByDayChart();
+            renderOvertimeChart();
+            renderAbsenceLeaderboard(startDate);
+            renderHeatmap(startDate);
+            renderHoursChart(startDate);
+        }
+
+        function safeDestroyChart(id) {
+            if (analyticsCharts[id]) { analyticsCharts[id].destroy(); delete analyticsCharts[id]; }
+        }
+
+        function computeKPIs(startDate) {
+            const teamSize = myTeam.length;
+            let workingDays = 0;
+            for (let d = new Date(startDate); d <= TODAY_DATE; d.setDate(d.getDate() + 1))
+                if (d.getDay() !== 0 && d.getDay() !== 6) workingDays++;
+
+            const dayMap = {};
+            analyticsRecords.forEach(r => { dayMap[r.date] = (dayMap[r.date] || 0) + 1; });
+            const dayVals = Object.values(dayMap);
+            const avgAttend = dayVals.length > 0 ? (dayVals.reduce((s, v) => s + v, 0) / dayVals.length).toFixed(1) : 0;
+            const attendPct = teamSize > 0 ? Math.round((avgAttend / teamSize) * 100) : 0;
+
+            const lateCount = analyticsRecords.filter(r => r.status === 'LATE').length;
+            const lateRate  = analyticsRecords.length > 0 ? Math.round((lateCount / analyticsRecords.length) * 100) : 0;
+
+            const totalOTMins = analyticsRecords.reduce((s, r) => s + (Number(r.overtime_mins) || 0), 0);
+            const hoursRecs   = analyticsRecords.filter(r => r.hours_worked > 0);
+            const avgHrs      = hoursRecs.length > 0
+                ? (hoursRecs.reduce((s, r) => s + parseFloat(r.hours_worked), 0) / hoursRecs.length).toFixed(1) : null;
+
+            document.getElementById('kpiAvgAttendance').textContent = `${avgAttend} (${attendPct}%)`;
+            document.getElementById('kpiLateRate').textContent = `${lateRate}%`;
+            document.getElementById('kpiTotalOT').textContent = `${(totalOTMins/60).toFixed(1)} hrs`;
+            document.getElementById('kpiAvgHours').textContent = avgHrs ? `${avgHrs} hrs` : '—';
+        }
+
+        function renderAttendanceChart(startDate) {
+            safeDestroyChart('attendance');
+            const ctx = document.getElementById('chartAttendance').getContext('2d');
+            const teamSize = myTeam.length;
+            const days = [], presentCounts = [];
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date(TODAY_DATE);
+                d.setDate(d.getDate() - i);
+                if (d.getDay() === 0 || d.getDay() === 6) continue;
+                const ds = d.toISOString().split('T')[0];
+                days.push(d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }));
+                presentCounts.push(analyticsRecords.filter(r => r.date === ds).length);
+            }
+            if (!days.length) { document.getElementById('insightAttendance').textContent = 'No data.'; return; }
+            const worstIdx = presentCounts.indexOf(Math.min(...presentCounts));
+            const bestIdx  = presentCounts.indexOf(Math.max(...presentCounts));
+            analyticsCharts['attendance'] = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: days, datasets: [
+                    { label: 'Checked In', data: presentCounts,
+                      backgroundColor: presentCounts.map((_,i) => i===worstIdx?'#ef444480':'#3b82f680'),
+                      borderColor: presentCounts.map((_,i) => i===worstIdx?'#ef4444':'#3b82f6'),
+                      borderWidth:2, borderRadius:6 },
+                    { label:'Team Size', data: new Array(days.length).fill(teamSize),
+                      type:'line', borderColor:'#10b981', borderWidth:2, borderDash:[5,5], pointRadius:0, fill:false }
+                ]},
+                options: { responsive:true,
+                    scales: { y:{beginAtZero:true,max:Math.max(teamSize+2,5),ticks:{stepSize:1}}, x:{ticks:{font:{size:10},maxRotation:40}} },
+                    plugins: { legend:{display:true,labels:{font:{size:11},boxWidth:12}} } }
+            });
+            const worstPct = teamSize>0 ? Math.round((presentCounts[worstIdx]/teamSize)*100) : 0;
+            document.getElementById('insightAttendance').innerHTML =
+                `💡 <strong>Lowest day:</strong> ${days[worstIdx]} — only ${presentCounts[worstIdx]}/${teamSize} present (${worstPct}%). Best: <strong>${days[bestIdx]}</strong> with ${presentCounts[bestIdx]}/${teamSize}.`;
+        }
+
+        function renderLateByDayChart() {
+            safeDestroyChart('lateByDay');
+            const ctx = document.getElementById('chartLateByDay').getContext('2d');
+            const dayNames=['Mon','Tue','Wed','Thu','Fri'], jsDay=[1,2,3,4,5];
+            const lateCount=new Array(5).fill(0), totalCount=new Array(5).fill(0);
+            analyticsRecords.forEach(r => {
+                const d=new Date(r.date+'T00:00:00').getDay(), idx=jsDay.indexOf(d);
+                if(idx<0) return; totalCount[idx]++; if(r.status==='LATE') lateCount[idx]++;
+            });
+            const lateRates=lateCount.map((l,i)=>totalCount[i]>0?Math.round((l/totalCount[i])*100):0);
+            const worstIdx=lateRates.indexOf(Math.max(...lateRates));
+            analyticsCharts['lateByDay'] = new Chart(ctx, {
+                type:'bar',
+                data:{labels:dayNames,datasets:[{label:'Late Rate %',data:lateRates,
+                    backgroundColor:lateRates.map((_,i)=>i===worstIdx?'#f59e0b':'#fcd34d'),
+                    borderColor:lateRates.map((_,i)=>i===worstIdx?'#d97706':'#f59e0b'),
+                    borderWidth:2,borderRadius:6}]},
+                options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{display:false}}}
+            });
+            document.getElementById('insightLateDay').innerHTML = lateRates.every(r=>r===0)
+                ? '✅ Perfect punctuality — no late arrivals recorded this period!'
+                : `💡 <strong>${dayNames[worstIdx]}s</strong> have the highest late rate at <strong>${lateRates[worstIdx]}%</strong> (${lateCount[worstIdx]} late arrivals).`;
+        }
+
+        function renderOvertimeChart() {
+            safeDestroyChart('overtime');
+            const otByStaff = {};
+            myTeam.forEach(s => { otByStaff[s.email] = { name: s.fullName.split(' ')[0], mins: 0 }; });
+            analyticsRecords.forEach(r => { if(otByStaff[r.staff_email]&&r.overtime_mins>0) otByStaff[r.staff_email].mins+=Number(r.overtime_mins); });
+            const sorted = Object.values(otByStaff).filter(s=>s.mins>0).sort((a,b)=>b.mins-a.mins).slice(0,8);
+            if(!sorted.length) {
+                document.getElementById('overtimeChartWrapper').innerHTML =
+                    '<div style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fa-solid fa-circle-check" style="font-size:36px;color:#10b981;display:block;margin-bottom:10px;"></i>No overtime recorded in the last 30 days!</div>';
+                return;
+            }
+            const ctx = document.getElementById('chartOvertime').getContext('2d');
+            const avgOTHrs = (sorted.reduce((s,x)=>s+x.mins,0)/30*7/60).toFixed(1);
+            analyticsCharts['overtime'] = new Chart(ctx, {
+                type:'bar',
+                data:{labels:sorted.map(s=>s.name),datasets:[{label:'Overtime (hrs)',
+                    data:sorted.map(s=>(s.mins/60).toFixed(1)),
+                    backgroundColor:sorted.map((_,i)=>i===0?'#ef444488':'#fb923c55'),
+                    borderColor:sorted.map((_,i)=>i===0?'#ef4444':'#f97316'),
+                    borderWidth:2,borderRadius:6}]},
+                options:{indexAxis:'y',responsive:true,scales:{x:{beginAtZero:true,ticks:{callback:v=>v+'h'}}},plugins:{legend:{display:false}}}
+            });
+            document.getElementById('insightOvertime').innerHTML =
+                `⚠️ <strong>${sorted[0].name}</strong> leads overtime with <strong>${(sorted[0].mins/60).toFixed(1)} hrs</strong>. Team avg: <strong>${avgOTHrs} hrs OT/week</strong>. ${parseFloat(avgOTHrs)>3?'⚠️ Consider additional headcount.':'✅ Within healthy range.'}`;
+        }
+
+        function renderAbsenceLeaderboard(startDate) {
+            const tbody = document.getElementById('absenceLeaderboard');
+            let workingDays=0;
+            for(let d=new Date(startDate);d<=TODAY_DATE;d.setDate(d.getDate()+1))
+                if(d.getDay()!==0&&d.getDay()!==6) workingDays++;
+            const cnt={};
+            myTeam.forEach(s=>{cnt[s.email]=0;});
+            analyticsRecords.forEach(r=>{if(cnt[r.staff_email]!==undefined)cnt[r.staff_email]++;});
+            const absences=myTeam.map(s=>({name:s.fullName,absences:Math.max(0,workingDays-(cnt[s.email]||0))})).sort((a,b)=>b.absences-a.absences);
+            const maxAbs=absences[0]?.absences||0;
+            tbody.innerHTML=absences.slice(0,10).map((s,i)=>{
+                const pct=workingDays>0?Math.round((s.absences/workingDays)*100):0;
+                const barW=maxAbs>0?Math.round((s.absences/maxAbs)*100):0;
+                const clr=pct>=30?'#ef4444':pct>=15?'#f59e0b':'#10b981';
+                const badge=i===0&&s.absences>0?'<span class="badge red" style="font-size:10px;margin-left:4px;">Most Absent</span>':'';
+                return `<tr>
+                    <td style="color:var(--text-muted);font-weight:600;">#${i+1}</td>
+                    <td><strong>${s.name.split(' ')[0]}</strong>${badge}</td>
+                    <td><strong style="color:${clr};">${s.absences}</strong><span style="font-size:10px;color:var(--text-muted);"> /${workingDays}d</span></td>
+                    <td><div style="background:var(--border-light);border-radius:4px;height:6px;width:80px;overflow:hidden;"><div style="background:${clr};width:${barW}%;height:6px;"></div></div><span style="font-size:10px;color:var(--text-muted);">${pct}%</span></td>
+                </tr>`;
+            }).join('');
+            document.getElementById('insightAbsence').innerHTML = absences[0]&&absences[0].absences>0
+                ? `💡 <strong>${absences[0].name.split(' ')[0]}</strong> has been absent <strong>${absences[0].absences} days</strong> out of ${workingDays} working days.`
+                : '✅ Perfect attendance across your entire team this period!';
+        }
+
+        let heatmapExpanded = false;
+        let heatmapCache = null; // { absCount, totCount, colTotals, worstDay, sortedTeam, heatColor }
+
+        function renderHeatmap(startDate) {
+            const container = document.getElementById('heatmapContainer');
+            const dayNames=['Mon','Tue','Wed','Thu','Fri'], jsDayMap=[1,2,3,4,5];
+
+            // Only recompute if we don't have cached data
+            if (!heatmapCache) {
+                const absCount={}, totCount={};
+                myTeam.forEach(s=>{absCount[s.email]={};totCount[s.email]={};dayNames.forEach(d=>{absCount[s.email][d]=0;totCount[s.email][d]=0;});});
+                for(let d=new Date(startDate);d<=TODAY_DATE;d.setDate(d.getDate()+1)){
+                    const jd=d.getDay(),idx=jsDayMap.indexOf(jd);if(idx<0)continue;
+                    const dn=dayNames[idx],ds=d.toISOString().split('T')[0];
+                    const dayRecs=analyticsRecords.filter(r=>r.date===ds);
+                    myTeam.forEach(s=>{totCount[s.email][dn]++;if(!dayRecs.find(r=>r.staff_email===s.email))absCount[s.email][dn]++;});
+                }
+                const colTotals={};
+                dayNames.forEach(dn=>{colTotals[dn]=myTeam.reduce((sum,s)=>sum+(absCount[s.email]?.[dn]||0),0);});
+                const worstDay=dayNames.reduce((best,d)=>colTotals[d]>colTotals[best]?d:best,dayNames[0]);
+                const heatColor=(abs,tot)=>{if(tot===0)return'#f1f5f9';const r=abs/tot;if(r===0)return'#d1fae5';if(r<0.15)return'#bbf7d0';if(r<0.30)return'#fde68a';if(r<0.50)return'#fca5a5';return'#ef4444';};
+                // Sort team by total absences descending
+                const sortedTeam = [...myTeam].sort((a,b) => {
+                    const aAbs = dayNames.reduce((s,d)=>s+(absCount[a.email]?.[d]||0),0);
+                    const bAbs = dayNames.reduce((s,d)=>s+(absCount[b.email]?.[d]||0),0);
+                    return bAbs - aAbs;
+                });
+                heatmapCache = { absCount, totCount, colTotals, worstDay, sortedTeam, heatColor };
+            }
+
+            const { absCount, totCount, colTotals, worstDay, sortedTeam, heatColor } = heatmapCache;
+            const limit = heatmapExpanded ? sortedTeam.length : 10;
+            const displayTeam = sortedTeam.slice(0, limit);
+
+            const rows = displayTeam.map(s=>{
+                const totalAbs=dayNames.reduce((sum,d)=>sum+(absCount[s.email]?.[d]||0),0);
+                const totalWD=dayNames.reduce((sum,d)=>sum+(totCount[s.email]?.[d]||0),0);
+                return `<tr style="border-bottom:1px solid var(--border-light);">
+                    <td style="padding:8px 12px;font-weight:500;white-space:nowrap;">${s.fullName.split(' ')[0]}</td>
+                    ${dayNames.map(dn=>{const a=absCount[s.email]?.[dn]||0,t=totCount[s.email]?.[dn]||1;return `<td style="text-align:center;padding:6px 20px;"><div style="background:${heatColor(a,t)};border-radius:6px;padding:4px 8px;font-weight:600;display:inline-block;min-width:28px;">${a}</div></td>`;}).join('')}
+                    <td style="text-align:center;padding:8px 12px;"><span style="background:${heatColor(totalAbs,totalWD)};padding:3px 10px;border-radius:20px;font-weight:700;">${totalAbs}</span></td>
+                </tr>`;
+            }).join('');
+
+            const seeMoreRow = sortedTeam.length > 10 ? `
+                <tr>
+                    <td colspan="${dayNames.length + 2}" style="text-align:center;padding:12px;border-top:1px solid var(--border-light);">
+                        <button class="btn btn-outline" style="font-size:12px;padding:6px 18px;" onclick="heatmapExpanded=!heatmapExpanded;renderHeatmap(null);">
+                            ${heatmapExpanded ? '<i class="fa-solid fa-chevron-up" style="margin-right:6px;"></i>Show less' : `<i class="fa-solid fa-chevron-down" style="margin-right:6px;"></i>See ${sortedTeam.length - 10} more`}
+                        </button>
+                    </td>
+                </tr>` : '';
+
+            container.innerHTML=`<table style="border-collapse:collapse;font-size:12px;width:100%;">
+                <thead><tr>
+                    <th style="text-align:left;padding:8px 12px;color:var(--text-secondary);font-weight:600;">Staff</th>
+                    ${dayNames.map(d=>`<th style="text-align:center;padding:8px 20px;color:${d===worstDay?'#ef4444':'var(--text-secondary)'};font-weight:600;">${d}${d===worstDay?' 🔴':''}</th>`).join('')}
+                    <th style="text-align:center;padding:8px 12px;color:var(--text-secondary);font-weight:600;">Total</th>
+                </tr></thead>
+                <tbody>
+                    ${rows}
+                    <tr style="border-top:2px solid var(--border-light);background:var(--bg-body);">
+                        <td style="padding:8px 12px;font-weight:700;color:var(--text-muted);font-size:11px;">TOTAL</td>
+                        ${dayNames.map(d=>`<td style="text-align:center;padding:8px 20px;"><strong>${colTotals[d]}</strong></td>`).join('')}
+                        <td></td>
+                    </tr>
+                    ${seeMoreRow}
+                </tbody>
+            </table>
+            <div style="display:flex;gap:12px;align-items:center;margin-top:12px;font-size:11px;color:var(--text-muted);flex-wrap:wrap;">
+                <span>Legend:</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;background:#d1fae5;border-radius:3px;display:inline-block;"></span> No absences</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;background:#fde68a;border-radius:3px;display:inline-block;"></span> Some</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;background:#fca5a5;border-radius:3px;display:inline-block;"></span> Frequent</span>
+                <span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;background:#ef4444;border-radius:3px;display:inline-block;"></span> Critical</span>
+            </div>`;
+            document.getElementById('insightHeatmap').innerHTML =
+                `💡 <strong>${worstDay}</strong> has the most team absences (${colTotals[worstDay]} total). Consider scheduling fewer critical tasks on ${worstDay}s.`;
+        }
+
+        function renderHoursChart(startDate) {
+            safeDestroyChart('hours');
+            const ctx=document.getElementById('chartHours').getContext('2d');
+            const days=[],avgHours=[];
+            for(let i=13;i>=0;i--){
+                const d=new Date(TODAY_DATE);d.setDate(d.getDate()-i);
+                if(d.getDay()===0||d.getDay()===6) continue;
+                const ds=d.toISOString().split('T')[0];
+                const dayRecs=analyticsRecords.filter(r=>r.date===ds&&r.hours_worked>0);
+                const avg=dayRecs.length>0?(dayRecs.reduce((sum,r)=>sum+parseFloat(r.hours_worked),0)/dayRecs.length).toFixed(1):null;
+                days.push(d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));
+                avgHours.push(avg!==null?parseFloat(avg):null);
+            }
+            const validHours=avgHours.filter(h=>h!==null);
+            const overall=validHours.length>0?(validHours.reduce((s,h)=>s+h,0)/validHours.length).toFixed(1):'N/A';
+            const lowDays=validHours.filter(h=>h<7).length;
+            analyticsCharts['hours']=new Chart(ctx,{
+                type:'line',
+                data:{labels:days,datasets:[
+                    {label:'Avg Hours/Day',data:avgHours,borderColor:'#10b981',backgroundColor:'#10b98120',borderWidth:2.5,fill:true,tension:0.4,pointBackgroundColor:'#10b981',pointRadius:4,spanGaps:true},
+                    {label:'Target (8h)',data:new Array(days.length).fill(8),borderColor:'#94a3b8',borderWidth:1.5,borderDash:[6,4],pointRadius:0,fill:false}
+                ]},
+                options:{responsive:true,scales:{y:{min:0,max:12,ticks:{callback:v=>v+'h'}},x:{ticks:{font:{size:10},maxRotation:40}}},plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:12}}}}
+            });
+            document.getElementById('insightHours').innerHTML = validHours.length===0
+                ? '⚠️ No completed shifts recorded in this period.'
+                : `💡 Team averaged <strong>${overall} hrs/day</strong>. ${lowDays>0?`⚠️ <strong>${lowDays} days</strong> where the average dipped below 7 hrs.`:'✅ Consistent working hours throughout the period.'}`;
+        }
+
+        async function init() {
+            updateSidebar();
+            updateDateDisplay();
+            await loadMyTeam();
+            loadAnalytics();
+        }
+
+        init();
+    </script>
+</body>
+</html>
