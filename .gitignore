@@ -43,3 +43,6 @@ application-dev.yml
 # ─── Python / Temp Files ────────────────────────
 venv/
 ~$*.xlsx
+
+# ─── Node ───────────────────────────────────────
+node_modules/

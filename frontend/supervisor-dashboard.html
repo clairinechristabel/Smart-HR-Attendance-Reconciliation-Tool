@@ -7,8 +7,9 @@
     <meta name="description" content="Supervisor dashboard for managing team attendance and L1 approvals">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css?v=2">
-    <!-- Supabase -->
+    <!-- Supabase & SheetJS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="supabase-client.js?v=4"></script>
 </head>
 <body>
@@ -55,8 +56,14 @@
                     <div class="breadcrumb">Supervisor Portal › <span>Dashboard</span></div>
                     <h1>My Team Dashboard</h1>
                 </div>
-                <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
-                    June 2026
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div style="font-size: 13px; color: var(--text-secondary);" id="todayDate">
+                        June 2026
+                    </div>
+                    <button class="btn btn-primary" onclick="document.getElementById('biometricUpload').click()">
+                        <i class="fa-solid fa-file-excel" style="margin-right: 6px;"></i> Upload Report
+                    </button>
+                    <input type="file" id="biometricUpload" accept=".xls,.xlsx" style="display: none;" onchange="handleBiometricUpload(event)">
                 </div>
             </div>
 
@@ -687,6 +694,164 @@
                 }
             }
             tbody.innerHTML = html;
+        }
+
+        // ── Biometric Upload Logic ──
+        async function handleBiometricUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Reading Excel file...', 'info');
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
+                    
+                    let currentDate = null;
+                    const records = [];
+                    const allUsersMap = {};
+                    
+                    // Fetch ALL users directly from DB so we don't try to insert existing hidden users
+                    const { data: dbUsers } = await supabase.from('users').select('*');
+                    (dbUsers || []).forEach(u => {
+                        allUsersMap[u.full_name.toLowerCase()] = {
+                            id: u.id,
+                            fullName: u.full_name,
+                            email: u.email,
+                            role: u.role,
+                            staffType: u.staff_type,
+                            location: u.location
+                        };
+                    });
+                    
+                    const restorePromises = [];
+
+                    for (let i = 0; i < rows.length; i++) {
+                        const rowStr = rows[i].map(c => String(c).trim());
+                        
+                        if (rowStr.includes("Date:")) {
+                            const dateIdx = rowStr.indexOf("Date:") + 1;
+                            let dateStr = "";
+                            for (let j = dateIdx; j < rowStr.length; j++) {
+                                if (rowStr[j]) { dateStr = rowStr[j]; break; }
+                            }
+                            if (dateStr) currentDate = dateStr;
+                        }
+
+                        const name = rowStr[0];
+                        if (name && name !== "User Name" && name !== "Daily In Out Report" && !rowStr.includes("Date:")) {
+                            let staffCode = rowStr.length > 4 ? rowStr[4] : "";
+                            let dept = rowStr.length > 6 ? rowStr[6] : "";
+                            let position = rowStr.length > 8 ? rowStr[8] : "";
+                            const inTime = rowStr.length > 13 ? rowStr[13] : "";
+                            const outTimeVal = rowStr.length > 14 ? rowStr[14] : "";
+                            
+                            if (!inTime || inTime === "-") continue;
+                            const outTime = (outTimeVal && outTimeVal !== "-") ? outTimeVal : null;
+
+                            if (!staffCode) staffCode = "TEMP-" + records.length;
+
+                            let matchedUser = allUsersMap[name.toLowerCase()];
+                            if (!matchedUser) {
+                                let emailPrefix = name.replace(/[^\x00-\x7F]/g, "").trim().toLowerCase().replace(/\s+/g, ".");
+                                if (!emailPrefix) emailPrefix = "user_" + staffCode.toLowerCase();
+                                const email = emailPrefix + "@foodangel.hk";
+                                const userId = crypto.randomUUID();
+                                
+                                const newUser = {
+                                    id: userId,
+                                    full_name: name,
+                                    email: email,
+                                    role: "STAFF",
+                                    staff_type: "FULL_TIME",
+                                    location: "Sham Shui Po Factory",
+                                    department: dept,
+                                    position: position,
+                                    employee_id: staffCode
+                                };
+                                
+                                const { error: insertErr } = await supabase.from('users').insert([newUser]);
+                                if (insertErr) console.warn("User insert error (possibly exists):", insertErr);
+                                
+                                matchedUser = {
+                                    id: userId,
+                                    fullName: name,
+                                    email: email,
+                                    role: "STAFF",
+                                    staffType: "FULL_TIME",
+                                    location: "Sham Shui Po Factory",
+                                    contractedHours: 8.0
+                                };
+                                allUsersMap[name.toLowerCase()] = matchedUser;
+                            } else if (matchedUser.location === 'DELETED') {
+                                // Restore hidden user concurrently
+                                restorePromises.push(
+                                    supabase.from('users').update({
+                                        role: 'STAFF', 
+                                        location: 'Sham Shui Po Factory'
+                                    }).eq('email', matchedUser.email)
+                                );
+                                matchedUser.role = 'STAFF';
+                                matchedUser.location = 'Sham Shui Po Factory';
+                            }
+
+                            let hoursWorked = 0;
+                            if (outTime) {
+                                const [inH, inM] = inTime.split(':').map(Number);
+                                const [outH, outM] = outTime.split(':').map(Number);
+                                let inTotal = inH * 60 + inM;
+                                let outTotal = outH * 60 + outM;
+                                if (outTotal < inTotal) outTotal += 24 * 60;
+                                hoursWorked = Math.round((outTotal - inTotal) / 60 * 10) / 10;
+                            }
+
+                            records.push({
+                                staff_email: matchedUser.email,
+                                staff_name: matchedUser.fullName,
+                                date: currentDate,
+                                check_in: inTime,
+                                check_out: outTime,
+                                status: "ON_TIME",
+                                method: "BIOMETRIC",
+                                hours_worked: outTime ? hoursWorked : null,
+                                staff_type: matchedUser.staffType || "FULL_TIME"
+                            });
+                        }
+                    }
+
+                    if (records.length > 0) {
+                        if (restorePromises.length > 0) {
+                            showToast(`Restoring ${restorePromises.length} accounts...`, 'info');
+                            await Promise.all(restorePromises);
+                        }
+                        
+                        showToast(`Uploading ${records.length} records...`, 'info');
+                        for (let i = 0; i < records.length; i += 50) {
+                            await supabase.from('attendance_records').insert(records.slice(i, i + 50));
+                        }
+                        showToast(`Successfully processed and uploaded ${records.length} records!`, 'success');
+                        
+                        setTimeout(() => {
+                            loadOverviewStats();
+                            loadAbsentStaff();
+                            loadTeamGrid();
+                            loadRecentActivity();
+                        }, 1000);
+                    } else {
+                        showToast("No valid records found in the file.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Error processing file.", "error");
+                }
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
         }
 
         // ── Init ──

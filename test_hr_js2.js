@@ -1,0 +1,598 @@
+        // ── Auth guard ──
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (!user || user.role !== 'HR_ADMIN') window.location.href = 'index.html';
+
+        // ── Constants ──
+        const LEAVE_TYPES = {
+            'ANNUAL': { icon: '<i class="fa-solid fa-plane-departure"></i>', name: 'Annual', code: 'AL' },
+            'BIRTHDAY': { icon: '<i class="fa-solid fa-cake-candles"></i>', name: 'Birthday', code: 'BL' },
+            'COMPENSATION': { icon: '<i class="fa-solid fa-scale-balanced"></i>', name: 'Compensation', code: 'CPL' },
+            'COMPASSIONATE': { icon: '<i class="fa-solid fa-dove"></i>', name: 'Compassionate', code: 'CL' },
+            'SICK': { icon: '<i class="fa-solid fa-notes-medical"></i>', name: 'Full Pay Sick', code: 'SL' },
+            'NO_PAY_SICK': { icon: '<i class="fa-solid fa-thermometer"></i>', name: 'No Pay Sick', code: 'NSL' },
+            'SICK_ALLOWANCE': { icon: '<i class="fa-solid fa-hand-holding-medical"></i>', name: '4/5 Sick Allowance', code: 'SLA' },
+            'UNPAID': { icon: '<i class="fa-solid fa-ban"></i>', name: 'No Pay Leave', code: 'NPL' },
+            'MARRIAGE': { icon: '<i class="fa-solid fa-rings-wedding"></i>', name: 'Marriage', code: 'M' },
+            'MATERNITY': { icon: '<i class="fa-solid fa-baby"></i>', name: 'Maternity', code: 'MML' },
+            'PATERNITY': { icon: '<i class="fa-solid fa-baby-carriage"></i>', name: 'Paternity', code: 'PL' },
+            'WFH': { icon: '<i class="fa-solid fa-house-laptop"></i>', name: 'Work From Home', code: 'WFH' },
+            'PERSONAL': { icon: '<i class="fa-solid fa-hourglass-half"></i>', name: 'Personal', code: 'PER' }
+        };
+
+        let ALL_STAFF = [];
+        async function loadAllStaff() {
+            const { data } = await supabase
+                .from('users')
+                .select('*')
+                .neq('role', 'HR_ADMIN');
+            
+            ALL_STAFF = data ? data.map(u => ({
+                email: u.email,
+                fullName: u.full_name,
+                employeeId: u.employee_id || 'FA-0000',
+                staffType: u.staff_type,
+                location: u.location,
+                department: u.department || '',
+                position: u.position || u.role
+            })) : [];
+        }
+
+        // ── Sidebar ──
+        function updateSidebar() {
+            if (!user) return;
+            const initials = user.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = initials;
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarRole').textContent = user.position || 'HR Admin';
+        }
+
+        // ── Date ──
+        function updateDateDisplay() {
+            const now = new Date();
+            document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right: 6px;"></i>' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        // ── Overview Stats ──
+        async function loadOverviewStats(locationFilter = 'ALL') {
+            const today = new Date().toISOString().split('T')[0];
+            const filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
+            const staffEmails = filteredStaff.map(s => s.email);
+
+            if (staffEmails.length === 0) {
+                document.getElementById('statTotalStaff').textContent = 0;
+                document.getElementById('statCheckedIn').textContent = 0;
+                document.getElementById('statLateToday').textContent = 0;
+                document.getElementById('statPending').textContent = 0;
+                return;
+            }
+
+            const { data: todayRecords } = await supabase
+                .from('attendance_records')
+                .select('*')
+                .eq('date', today)
+                .in('staff_email', staffEmails);
+
+            const checkedIn = (todayRecords || []).length;
+            const lateToday = (todayRecords || []).filter(r => r.status === 'LATE').length;
+            
+            const { data: pendingLeaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .eq('supervisor_approval', 'APPROVED')
+                .eq('hr_approval', 'PENDING');
+
+            document.getElementById('statTotalStaff').textContent = filteredStaff.length;
+            document.getElementById('statCheckedIn').textContent = checkedIn;
+            document.getElementById('statLateToday').textContent = lateToday;
+            document.getElementById('statPending').textContent = (pendingLeaves || []).length;
+        }
+
+        // ── Pending Leave Requests ──
+        async function loadPendingLeaves(locationFilter = 'ALL') {
+            const filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
+            const staffEmails = filteredStaff.map(s => s.email);
+            const tbody = document.getElementById('pendingBody');
+            
+            if (staffEmails.length === 0) {
+                document.getElementById('pendingCount').textContent = '0 pending L2';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending HR approvals!</td></tr>';
+                return;
+            }
+
+            const { data: pending } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .eq('supervisor_approval', 'APPROVED')
+                .eq('hr_approval', 'PENDING');
+            
+            document.getElementById('pendingCount').textContent = (pending || []).length + ' pending L2';
+
+            if (!pending || pending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">No pending HR approvals!</td></tr>';
+                return;
+            }
+
+            // Fetch approved annual leaves for these staff to calculate balance
+            const { data: approvedLeaves } = await supabase
+                .from('leave_requests')
+                .select('*')
+                .in('staff_email', staffEmails)
+                .eq('type', 'ANNUAL')
+                .eq('status', 'APPROVED');
+
+            tbody.innerHTML = pending.map(l => {
+                const typeInfo = LEAVE_TYPES[l.type] || { icon: '<i class="fa-solid fa-file"></i>', name: l.type };
+
+                const startStr = new Date(l.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
+
+                const attachmentLink = l.attachment_name
+                    ? `<a href="#" onclick="showPreview('${l.id}'); return false;" style="font-size: 11px; color: var(--blue-600); display: block; margin-top: 4px;"><i class="fa-solid fa-paperclip"></i> View Note</a>`
+                    : '';
+
+                // Calculate Used AL and AL Balance for this staff member
+                const staffALLeaves = (approvedLeaves || []).filter(al => al.staff_email === l.staff_email);
+                const usedAL = staffALLeaves.reduce((s, al) => s + al.days, 0);
+                const alEntitlement = l.annual_leave_entitlement || 14; // default 14 days
+                const alBalance = alEntitlement - usedAL;
+
+                return `
+                    <tr>
+                        <td><strong>${l.staff_name}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staff_email}</span></td>
+                        <td><span style="font-size: 12px;"><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i> ${l.staff_location || '—'}</span></td>
+                        <td>${typeInfo.icon} ${typeInfo.name}<br>${attachmentLink}</td>
+                        <td>${dateRange}</td>
+                        <td><strong>${l.days}</strong></td>
+                        <td style="font-size:12px;"><strong>${usedAL}</strong> days</td>
+                        <td style="font-size:12px;"><strong style="color: ${alBalance <= 2 ? 'var(--red-500)' : 'var(--green-600)'}">${alBalance}</strong> days</td>
+                        <td>
+                            <div class="approval-chain" style="margin-bottom: 4px;">
+                                <div class="approval-step done">L1: Supervisor <i class="fa-solid fa-check"></i></div>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${l.reason || 'No reason provided'}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn btn-primary" style="font-size: 11px; padding: 6px 12px;" onclick="handleLeave('${l.id}', 'APPROVED')"><i class="fa-solid fa-check" style="margin-right: 4px;"></i> Final Approve</button>
+                                <button class="btn btn-outline" style="font-size: 11px; padding: 6px 12px; color: var(--red-500); border-color: var(--red-500);" onclick="handleLeave('${l.id}', 'REJECTED')"><i class="fa-solid fa-xmark" style="margin-right: 4px;"></i> Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function handleLeave(leaveId, l2Decision) {
+            const { error } = await supabase.from('leave_requests')
+                .update({
+                    hr_approval: l2Decision,
+                    status: l2Decision
+                })
+                .eq('id', leaveId);
+            
+            if (!error) {
+                applyFilters();
+                const action = l2Decision === 'APPROVED' ? '<i class="fa-solid fa-check"></i> Approved' : '<i class="fa-solid fa-xmark"></i> Rejected';
+                showToast(`${action}: Leave request updated.`, l2Decision === 'APPROVED' ? 'success' : 'error');
+            } else {
+                showToast(`Failed to update leave request.`, 'error');
+            }
+        }
+
+        // ── Staff Overview ──
+        async function loadStaffOverview(locationFilter = 'ALL', searchQuery = '') {
+            const tbody = document.getElementById('staffOverviewBody');
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            const today = now.toISOString().split('T')[0];
+
+            let filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
+            
+            const staffEmails = filteredStaff.map(s => s.email);
+
+            const firstDay = new Date(currentYear, currentMonth, 1).toISOString().split('T')[0];
+            const lastDay = new Date(currentYear, currentMonth + 1, 0).toISOString().split('T')[0];
+
+            let recordsQuery = supabase
+                .from('attendance_records')
+                .select('*')
+                .gte('date', firstDay)
+                .lte('date', lastDay);
+            
+            if (locationFilter !== 'ALL') {
+                recordsQuery = recordsQuery.in('staff_email', staffEmails);
+            }
+            
+            const { data: records } = await recordsQuery;
+
+            let leavesQuery = supabase
+                .from('leave_requests')
+                .select('*')
+                .eq('status', 'APPROVED');
+                
+            if (locationFilter !== 'ALL') {
+                leavesQuery = leavesQuery.in('staff_email', staffEmails);
+            }
+            
+            const { data: leaves } = await leavesQuery;
+
+            const limit = staffGridExpanded ? filteredStaff.length : 10;
+            const visibleStaff = filteredStaff.slice(0, limit);
+
+            let html = visibleStaff.map(staff => {
+                const monthRecords = (records || []).filter(r => r.staff_email === staff.email);
+
+                const daysWorked = monthRecords.filter(r => r.check_out).length;
+                const lateCount = monthRecords.filter(r => r.status === 'LATE').length;
+                const totalHours = monthRecords.reduce((s, r) => s + (r.hours_worked || 0), 0);
+
+                // New columns: Late Arrival, Early Leave, OT totals
+                const totalLateMinutes = monthRecords.reduce((s, r) => s + (r.late_arrival_mins || 0), 0);
+                const totalEarlyMinutes = monthRecords.reduce((s, r) => s + (r.early_leave_mins || 0), 0);
+                const totalOTMinutes = monthRecords.reduce((s, r) => s + (r.overtime_mins || 0), 0);
+                const totalAbsent = monthRecords.filter(r => r.status === 'ABSENT').length;
+
+                const fmtMins = (m) => { const h = Math.floor(m / 60); const mm = m % 60; return h > 0 ? `${h}h ${mm}m` : `${mm}m`; };
+
+                const staffLeaves = (leaves || []).filter(l => l.staff_email === staff.email);
+                const annualUsed = staffLeaves.filter(l => l.type === 'ANNUAL').reduce((s, l) => s + l.days, 0);
+                const medicalUsed = staffLeaves.filter(l => l.type === 'SICK').reduce((s, l) => s + l.days, 0);
+
+                const todayRecord = monthRecords.find(r => r.date === today);
+                let todayBadge = '<span class="badge" style="background: var(--bg-body); color: var(--text-muted);">Not In</span>';
+                
+                // Check if on leave today
+                const onLeave = staffLeaves.find(l => l.start_date <= today && l.end_date >= today);
+                
+                if (onLeave) {
+                    todayBadge = `<span class="badge blue"><i class="fa-solid fa-plane-departure"></i> On Leave</span>`;
+                } else if (todayRecord) {
+                    if (todayRecord.check_out) {
+                        todayBadge = '<span class="badge green"><i class="fa-solid fa-check-double"></i> Done</span>';
+                    } else {
+                        todayBadge = todayRecord.status === 'LATE'
+                            ? '<span class="badge amber"><i class="fa-solid fa-triangle-exclamation"></i> Late</span>'
+                            : '<span class="badge green"><i class="fa-solid fa-check"></i> In</span>';
+                    }
+                }
+
+                // Add staff type badge
+                let staffTypeBadge = '';
+                if (staff.staffType === 'VOLUNTEER') staffTypeBadge = '<span class="badge vol" style="font-size:9px; padding:2px 6px;">VOL</span>';
+                else if (staff.staffType === 'PART_TIME') staffTypeBadge = '<span class="badge pt" style="font-size:9px; padding:2px 6px;">PT</span>';
+                else staffTypeBadge = '<span class="badge ft" style="font-size:9px; padding:2px 6px;">FT</span>';
+
+                // Department / Position display
+                const deptPosition = staff.department ? `${staff.department}<br><span style="font-size:11px;color:var(--text-muted);">${staff.position || '—'}</span>` : (staff.position || '—');
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div>
+                                    <strong>${staff.fullName}</strong> ${staffTypeBadge}<br>
+                                    <span style="font-size: 11px; color: var(--text-muted);">${staff.employeeId}</span><br>
+                                    <span style="font-size: 10px; color: var(--text-secondary);"><i class="fa-solid fa-location-dot"></i> ${staff.location}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span style="font-size: 11px;">${deptPosition}</span></td>
+                        <td>
+                            <div style="font-size: 11px;">
+                                <div><strong>${daysWorked}</strong> days</div>
+                                <div style="color:var(--text-muted);">${totalHours > 0 ? totalHours.toFixed(1) + ' hrs' : '0 hrs'}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 11px;">
+                                <div><span style="color:var(--text-muted); display:inline-block; width: 35px;">Late:</span> ${totalLateMinutes > 0 ? '<span style="color:var(--amber-600); font-weight:600;">' + fmtMins(totalLateMinutes) + '</span>' : '0'}</div>
+                                <div><span style="color:var(--text-muted); display:inline-block; width: 35px;">Early:</span> ${totalEarlyMinutes > 0 ? '<span style="color:var(--amber-600); font-weight:600;">' + fmtMins(totalEarlyMinutes) + '</span>' : '0'}</div>
+                                <div><span style="color:var(--text-muted); display:inline-block; width: 35px;">OT:</span> ${totalOTMinutes > 0 ? '<span style="color:var(--green-600); font-weight:600;">' + fmtMins(totalOTMinutes) + '</span>' : '0'}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 11px;">
+                                <div><span style="color:var(--text-muted);">Late:</span> ${lateCount > 0 ? '<span style="color:var(--amber-600); font-weight:700;">' + lateCount + '</span>' : '0'} times</div>
+                                <div><span style="color:var(--text-muted);">Abs:</span> ${totalAbsent > 0 ? '<span style="color:var(--red-500); font-weight:700;">' + totalAbsent + '</span>' : '0'} days</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 11px;">
+                                <div><span style="color:var(--text-muted);">AL:</span> <strong>${annualUsed}</strong></div>
+                                <div><span style="color:var(--text-muted);">SL:</span> <strong>${medicalUsed}</strong></div>
+                            </div>
+                        </td>
+                        <td>${todayBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (filteredStaff.length > 10) {
+                html += `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 12px;">
+                            <button class="btn btn-outline" style="font-size: 12px; padding: 6px 16px;" onclick="staffGridExpanded=${!staffGridExpanded}; loadStaffOverview('${locationFilter}', '${searchQuery}');">
+                                ${staffGridExpanded ? 'Show less' : 'See ' + (filteredStaff.length - 10) + ' more...'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        // ── All Leave History ──
+        async function loadAllLeaves(locationFilter = 'ALL') {
+            const filteredStaff = locationFilter === 'ALL' ? ALL_STAFF : ALL_STAFF.filter(s => s.location === locationFilter);
+            const staffEmails = filteredStaff.map(s => s.email);
+            const tbody = document.getElementById('allLeavesBody');
+            
+            if (staffEmails.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
+                return;
+            }
+
+            let allLeavesQuery = supabase
+                .from('leave_requests')
+                .select('*')
+                .order('submitted_at', { ascending: false });
+                
+            if (locationFilter !== 'ALL') {
+                allLeavesQuery = allLeavesQuery.in('staff_email', staffEmails);
+            }
+
+            const { data: leaves } = await allLeavesQuery;
+
+            if (!leaves || leaves.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px; color: var(--text-muted);">No leave history.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = leaves.map(l => {
+                const typeInfo = LEAVE_TYPES[l.type] || { icon: '<i class="fa-solid fa-file"></i>', name: l.type };
+                const startStr = new Date(l.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = new Date(l.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const dateRange = l.days === 1 ? startStr : `${startStr} — ${endStr}`;
+                const submitted = new Date(l.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                // Overall Status Badge
+                let statusBadge = '';
+                if (l.status === 'APPROVED') statusBadge = '<span class="badge green"><i class="fa-solid fa-check"></i> Approved</span>';
+                else if (l.status === 'REJECTED') statusBadge = '<span class="badge red"><i class="fa-solid fa-xmark"></i> Rejected</span>';
+                else if (l.status === 'SUPERVISOR_APPROVED') statusBadge = '<span class="badge blue"><i class="fa-solid fa-hourglass-half"></i> L2 Pending</span>';
+                else statusBadge = '<span class="badge amber"><i class="fa-solid fa-hourglass-half"></i> L1 Pending</span>';
+
+                // Chain Visual
+                const chainVisual = `
+                    <div class="approval-chain">
+                        <div class="approval-step ${l.supervisor_approval === 'APPROVED' ? 'done' : (l.supervisor_approval === 'REJECTED' ? 'rejected' : 'current')}">L1</div>
+                        <span class="approval-arrow">→</span>
+                        <div class="approval-step ${l.hr_approval === 'APPROVED' ? 'done' : (l.hr_approval === 'REJECTED' ? 'rejected' : (l.hr_approval === 'N/A' ? '' : (l.supervisor_approval === 'APPROVED' ? 'current' : '')))}">L2</div>
+                    </div>
+                `;
+
+                // Calculate Used AL and AL Balance for this staff member
+                const staffALLeaves = (leaves || []).filter(al => al.staff_email === l.staff_email && al.type === 'ANNUAL' && al.status === 'APPROVED');
+                const usedAL = staffALLeaves.reduce((s, al) => s + al.days, 0);
+                const alEntitlement = l.annual_leave_entitlement || 14; // default 14 days
+                const alBalance = alEntitlement - usedAL;
+
+                return `
+                    <tr>
+                        <td><strong>${l.staff_name}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${l.staff_location || '—'}</span></td>
+                        <td>${typeInfo.icon} ${typeInfo.name}</td>
+                        <td>${dateRange}</td>
+                        <td><strong>${l.days}</strong></td>
+                        <td style="font-size:12px;"><strong>${usedAL}</strong> days</td>
+                        <td style="font-size:12px;"><strong style="color: ${alBalance <= 2 ? 'var(--red-500)' : 'var(--green-600)'}">${alBalance}</strong> days</td>
+                        <td>${chainVisual}</td>
+                        <td>${statusBadge}</td>
+                        <td>${submitted}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ── Filtering logic ──
+        async function applyFilters() {
+            const loc = document.getElementById('locationFilter').value;
+            const search = document.getElementById('staffSearch').value;
+            
+            await loadOverviewStats(loc);
+            await loadPendingLeaves(loc);
+            await loadStaffOverview(loc, search);
+            await loadAllLeaves(loc);
+        }
+
+        // ── Attachment Preview ──
+        async function showPreview(leaveId) {
+            const { data: leave } = await supabase.from('leave_requests').select('*').eq('id', leaveId).single();
+            if (!leave || !leave.attachment_url) return;
+            
+            document.getElementById('previewImage').src = leave.attachment_url;
+            document.getElementById('previewModal').classList.add('visible');
+        }
+
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('visible');
+        }
+
+        document.getElementById('previewModal').addEventListener('click', (e) => {
+            if (e.target.id === 'previewModal') closePreview();
+        });
+
+        // ── Toast ──
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'floating-toast ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ── Biometric Upload Logic ──
+        async function handleBiometricUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast('Reading Excel file...', 'info');
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
+                    
+                    let currentDate = null;
+                    const records = [];
+                    const allUsersMap = {};
+                    
+                    // Fetch ALL users directly from DB so we don't try to insert existing hidden users
+                    const { data: dbUsers } = await supabase.from('users').select('*');
+                    (dbUsers || []).forEach(u => {
+                        allUsersMap[u.full_name.toLowerCase()] = {
+                            id: u.id,
+                            fullName: u.full_name,
+                            email: u.email,
+                            role: u.role,
+                            staffType: u.staff_type,
+                            location: u.location
+                        };
+                    });
+                    
+                    const restorePromises = [];
+
+                    for (let i = 0; i < rows.length; i++) {
+                        const rowStr = rows[i].map(c => String(c).trim());
+                        
+                        if (rowStr.includes("Date:")) {
+                            const dateIdx = rowStr.indexOf("Date:") + 1;
+                            let dateStr = "";
+                            for (let j = dateIdx; j < rowStr.length; j++) {
+                                if (rowStr[j]) { dateStr = rowStr[j]; break; }
+                            }
+                            if (dateStr) currentDate = dateStr;
+                        }
+
+                        const name = rowStr[0];
+                        if (name && name !== "User Name" && name !== "Daily In Out Report" && !rowStr.includes("Date:")) {
+                            let staffCode = rowStr.length > 4 ? rowStr[4] : "";
+                            const inTime = rowStr.length > 13 ? rowStr[13] : "";
+                            const outTimeVal = rowStr.length > 14 ? rowStr[14] : "";
+                            
+                            if (!inTime || inTime === "-") continue;
+                            const outTime = (outTimeVal && outTimeVal !== "-") ? outTimeVal : null;
+
+                            if (!staffCode) staffCode = "TEMP-" + records.length;
+
+                            let matchedUser = allUsersMap[name.toLowerCase()];
+                            if (!matchedUser) {
+                                let emailPrefix = name.replace(/[^\x00-\x7F]/g, "").trim().toLowerCase().replace(/\s+/g, ".");
+                                if (!emailPrefix) emailPrefix = "user_" + staffCode.toLowerCase();
+                                const email = emailPrefix + "@foodangel.hk";
+                                const userId = crypto.randomUUID();
+                                
+                                const newUser = {
+                                    id: userId,
+                                    full_name: name,
+                                    email: email,
+                                    role: "STAFF",
+                                    staff_type: "FULL_TIME",
+                                    location: "Sham Shui Po Factory"
+                                };
+                                
+                                const { error: insertErr } = await supabase.from('users').insert([newUser]);
+                                if (insertErr) console.warn("User insert error (possibly exists):", insertErr);
+                                
+                                matchedUser = {
+                                    id: userId,
+                                    fullName: name,
+                                    email: email,
+                                    role: "STAFF",
+                                    staffType: "FULL_TIME",
+                                    location: "Sham Shui Po Factory",
+                                    contractedHours: 8.0
+                                };
+                                allUsersMap[name.toLowerCase()] = matchedUser;
+                            } else if (matchedUser.location === 'DELETED') {
+                                // Restore hidden user concurrently
+                                restorePromises.push(
+                                    supabase.from('users').update({
+                                        role: 'STAFF', 
+                                        location: 'Sham Shui Po Factory'
+                                    }).eq('email', matchedUser.email)
+                                );
+                                matchedUser.role = 'STAFF';
+                                matchedUser.location = 'Sham Shui Po Factory';
+                            }
+
+                            let hoursWorked = 0;
+                            if (outTime) {
+                                const [inH, inM] = inTime.split(':').map(Number);
+                                const [outH, outM] = outTime.split(':').map(Number);
+                                let inTotal = inH * 60 + inM;
+                                let outTotal = outH * 60 + outM;
+                                if (outTotal < inTotal) outTotal += 24 * 60;
+                                hoursWorked = Math.round((outTotal - inTotal) / 60 * 10) / 10;
+                            }
+
+                            records.push({
+                                staff_email: matchedUser.email,
+                                staff_name: matchedUser.fullName,
+                                date: currentDate,
+                                check_in: inTime,
+                                check_out: outTime,
+                                status: "ON_TIME",
+                                method: "BIOMETRIC",
+                                hours_worked: outTime ? hoursWorked : null,
+                                staff_type: matchedUser.staffType || "FULL_TIME"
+                            });
+                        }
+                    }
+
+                    if (records.length > 0) {
+                        if (restorePromises.length > 0) {
+                            showToast(`Restoring ${restorePromises.length} accounts...`, 'info');
+                            await Promise.all(restorePromises);
+                        }
+                        
+                        showToast(`Uploading ${records.length} records...`, 'info');
+                        for (let i = 0; i < records.length; i += 50) {
+                            await supabase.from('attendance_records').insert(records.slice(i, i + 50));
+                        }
+                        showToast(`Successfully processed and uploaded ${records.length} records!`, 'success');
+                        
+                        setTimeout(() => {
+                            loadAllStaff().then(() => applyFilters());
+                        }, 1000);
+                    } else {
+                        showToast("No valid records found in the file.", "error");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Error processing file.", "error");
+                }
+                event.target.value = '';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ── Init ──
+        async function init() {
+            updateSidebar();
+            updateDateDisplay();
+            await loadAllStaff();
+            applyFilters();
+        }
+
+        init();
