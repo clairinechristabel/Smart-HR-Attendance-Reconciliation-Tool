@@ -216,7 +216,8 @@
                 .in('staff_email', teamEmails)
                 .gte('date', startDate.toISOString().split('T')[0])
                 .lte('date', TODAY_DATE.toISOString().split('T')[0])
-                .order('date', { ascending: true });
+                .order('date', { ascending: true })
+                .limit(5000);
 
             analyticsRecords = data || [];
 

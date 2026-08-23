@@ -300,17 +300,33 @@
         }
 
         // ── Month Selector ──
-        function populateMonthSelector() {
+        async function populateMonthSelector() {
             const selector = document.getElementById('monthSelector');
-            const now = new Date();
 
-            for (let i = 0; i < 6; i++) {
-                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            // Find the most recent month that has actual data for this user
+            const { data: latestRecord } = await supabase
+                .from('attendance_records')
+                .select('date')
+                .eq('staff_email', profileUser.email)
+                .order('date', { ascending: false })
+                .limit(1);
+
+            // Use latest data month as "today", fallback to real today
+            const latestDate = latestRecord && latestRecord[0]
+                ? new Date(latestRecord[0].date + 'T00:00:00')
+                : new Date();
+
+            let defaultVal = null;
+            for (let i = 0; i < 12; i++) {
+                const d = new Date(latestDate.getFullYear(), latestDate.getMonth() - i, 1);
                 const opt = document.createElement('option');
-                opt.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                opt.value = val;
                 opt.textContent = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
                 selector.appendChild(opt);
+                if (i === 0) defaultVal = val;
             }
+            if (defaultVal) selector.value = defaultVal;
         }
 
         // ── Monthly Report ──
@@ -426,20 +442,30 @@
             const targetEmail = params.get('email');
             
             if (targetEmail && targetEmail !== user.email) {
+                // Fetch user record
                 const { data } = await supabase.from('users').select('*').eq('email', targetEmail).single();
                 if (data) {
+                    // Also get most recent attendance record to extract dept/position from XLS metadata
+                    const { data: recentRec } = await supabase
+                        .from('attendance_records')
+                        .select('staff_name, staff_type')
+                        .eq('staff_email', targetEmail)
+                        .order('date', { ascending: false })
+                        .limit(1);
+
                     profileUser = {
                         email: data.email,
                         fullName: data.full_name,
                         employeeId: data.employee_id || '—',
-                        department: data.department || '—',
-                        position: data.position || data.role || '—',
+                        department: data.department || data.location || '—',
+                        position: data.position || (data.role === 'STAFF' ? 'Staff' : data.role) || '—',
                         location: data.location || '—',
+                        staffType: (recentRec && recentRec[0] ? recentRec[0].staff_type : data.staff_type) || 'FULL_TIME',
                         phone: data.phone || '',
-                        joinDate: data.join_date || ''
+                        joinDate: data.join_date || data.created_at ? (data.join_date || data.created_at.split('T')[0]) : ''
                     };
                     
-                    // Update page title to show we are viewing someone else
+                    // Update page title and breadcrumb
                     document.title = profileUser.fullName + " — Profile";
                     document.querySelector('.breadcrumb').innerHTML = `Staff Portal › <a href="supervisor-dashboard.html">My Team</a> › <span>${profileUser.fullName}</span>`;
                     document.querySelector('.top-bar h1').textContent = profileUser.fullName + "'s Profile";
@@ -447,7 +473,7 @@
             }
             
             populateProfile();
-            populateMonthSelector();
+            await populateMonthSelector();  // await so selector is ready before loading report
             loadMonthlyReport();
         }
         
