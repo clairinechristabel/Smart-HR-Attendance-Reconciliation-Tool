@@ -287,7 +287,7 @@
 
         // ── Date ──
         function updateDateDisplay() {
-            const now = new Date('2026-06-10T12:00:00Z');
+            const now = new Date('2026-07-31T12:00:00Z');
             document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right: 6px;"></i>' + now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
             // Show managed locations
@@ -299,7 +299,7 @@
 
         // ── Overview Stats ──
         async function loadOverviewStats() {
-            const today = new Date('2026-06-10T12:00:00Z').toISOString().split('T')[0];
+            const today = new Date('2026-07-31T12:00:00Z').toISOString().split('T')[0];
             const teamEmails = myTeam.map(s => s.email);
 
             if (teamEmails.length === 0) return;
@@ -432,7 +432,7 @@
         let todayLeaves = [];
 
         async function loadTeamGrid() {
-            const today = new Date('2026-06-10T12:00:00Z').toISOString().split('T')[0];
+            const today = new Date('2026-07-31T12:00:00Z').toISOString().split('T')[0];
             const teamEmails = myTeam.map(s => s.email);
 
             if (teamEmails.length === 0) {

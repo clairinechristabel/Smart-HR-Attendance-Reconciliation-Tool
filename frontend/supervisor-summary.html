@@ -179,7 +179,7 @@
         }
 
         function updateDateDisplay() {
-            const now = new Date('2026-06-10T12:00:00Z');
+            const now = new Date('2026-07-31T12:00:00Z');
             document.getElementById('todayDate').innerHTML = '<i class="fa-regular fa-calendar" style="margin-right:6px;"></i>' +
                 now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
@@ -199,7 +199,7 @@
 
         let analyticsRecords = [];
         let analyticsCharts = {};
-        const TODAY_DATE = new Date('2026-06-10T12:00:00Z');
+        const TODAY_DATE = new Date('2026-07-31T12:00:00Z');
 
         async function loadAnalytics() {
             if (myTeam.length === 0) {
