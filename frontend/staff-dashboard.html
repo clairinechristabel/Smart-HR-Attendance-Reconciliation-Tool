@@ -377,27 +377,28 @@
                 const [inH, inM] = checkInTime.split(':').map(Number);
                 const checkInDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), inH, inM, 0);
                 const diffHours = Math.round(((now - checkInDate) / 1000 / 3600) * 10) / 10;
-                
-                let contractedHours = 8.0; // default
-                const { data: dbUser } = await supabase.from('users').select('contracted_hours_per_day, staff_type').eq('email', user.email).single();
-                if (dbUser) {
-                    if (dbUser.contracted_hours_per_day) {
-                        contractedHours = parseFloat(dbUser.contracted_hours_per_day);
-                    } else if (dbUser.staff_type === 'PART_TIME') {
-                        contractedHours = 4.0;
-                    }
+
+                // If currentRecordId is missing (e.g. race condition), re-fetch from DB
+                if (!currentRecordId) {
+                    const { data: refetch } = await supabase
+                        .from('attendance_records')
+                        .select('id')
+                        .eq('date', today)
+                        .eq('staff_email', user.email)
+                        .single();
+                    if (refetch) currentRecordId = refetch.id;
                 }
-                
-                let overtimeMins = 0;
-                if (diffHours > contractedHours) {
-                    overtimeMins = Math.round((diffHours - contractedHours) * 60);
+
+                if (!currentRecordId) {
+                    showToast('Could not find your check-in record. Please refresh and try again.', 'error');
+                    btn.disabled = false;
+                    return;
                 }
 
                 const { data, error } = await supabase.from('attendance_records')
                     .update({
                         check_out: timeStr,
-                        hours_worked: diffHours,
-                        overtime_mins: overtimeMins
+                        hours_worked: diffHours
                     })
                     .eq('id', currentRecordId)
                     .select()
@@ -408,6 +409,7 @@
                     showCheckedOut(data);
                     showToast('Checked out successfully!');
                 } else {
+                    console.error('Checkout error:', error);
                     showToast('Failed to check out. Try again.', 'error');
                 }
             }
