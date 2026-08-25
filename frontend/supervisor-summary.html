@@ -312,50 +312,73 @@
             safeDestroyChart('lateByDay');
             const ctx = document.getElementById('chartLateByDay').getContext('2d');
             const dayNames=['Mon','Tue','Wed','Thu','Fri'], jsDay=[1,2,3,4,5];
-            const lateCount=new Array(5).fill(0), totalCount=new Array(5).fill(0);
+            const lateCount=new Array(5).fill(0);
             analyticsRecords.forEach(r => {
                 const d=new Date(r.date+'T00:00:00').getDay(), idx=jsDay.indexOf(d);
-                if(idx<0) return; totalCount[idx]++; if(r.status==='LATE') lateCount[idx]++;
+                if(idx<0) return; if(r.status==='LATE') lateCount[idx]++;
             });
-            const lateRates=lateCount.map((l,i)=>totalCount[i]>0?Math.round((l/totalCount[i])*100):0);
-            const worstIdx=lateRates.indexOf(Math.max(...lateRates));
+            const worstIdx=lateCount.indexOf(Math.max(...lateCount));
+            const maxCount = Math.max(...lateCount, 1);
             analyticsCharts['lateByDay'] = new Chart(ctx, {
                 type:'bar',
-                data:{labels:dayNames,datasets:[{label:'Late Rate %',data:lateRates,
-                    backgroundColor:lateRates.map((_,i)=>i===worstIdx?'#f59e0b':'#fcd34d'),
-                    borderColor:lateRates.map((_,i)=>i===worstIdx?'#d97706':'#f59e0b'),
+                data:{labels:dayNames,datasets:[{label:'Late Staff',data:lateCount,
+                    backgroundColor:lateCount.map((_,i)=>i===worstIdx?'#f59e0b':'#fcd34d'),
+                    borderColor:lateCount.map((_,i)=>i===worstIdx?'#d97706':'#f59e0b'),
                     borderWidth:2,borderRadius:6}]},
-                options:{responsive:true,scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{display:false}}}
+                options:{responsive:true,
+                    scales:{y:{beginAtZero:true, max: maxCount + Math.ceil(maxCount*0.2), ticks:{stepSize:1, callback:v=>Number.isInteger(v)?v:null}}},
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{
+                            callbacks:{
+                                label: ctx => `${ctx.parsed.y} staff arrived late`
+                            }
+                        }
+                    }
+                }
             });
-            document.getElementById('insightLateDay').innerHTML = lateRates.every(r=>r===0)
+            document.getElementById('insightLateDay').innerHTML = lateCount.every(c=>c===0)
                 ? '✅ Perfect punctuality — no late arrivals recorded this period!'
-                : `💡 <strong>${dayNames[worstIdx]}s</strong> have the highest late rate at <strong>${lateRates[worstIdx]}%</strong> (${lateCount[worstIdx]} late arrivals).`;
+                : `💡 <strong>${dayNames[worstIdx]}s</strong> have the most late arrivals: <strong>${lateCount[worstIdx]} staff</strong> late this month.`;
         }
 
         function renderOvertimeChart() {
             safeDestroyChart('overtime');
+            // Calculate overtime from hours_worked > 8.0 (contracted hours)
+            const CONTRACTED = 8.0;
             const otByStaff = {};
-            myTeam.forEach(s => { otByStaff[s.email] = { name: s.fullName.split(' ')[0], mins: 0 }; });
-            analyticsRecords.forEach(r => { if(otByStaff[r.staff_email]&&r.overtime_mins>0) otByStaff[r.staff_email].mins+=Number(r.overtime_mins); });
-            const sorted = Object.values(otByStaff).filter(s=>s.mins>0).sort((a,b)=>b.mins-a.mins).slice(0,8);
+            myTeam.forEach(s => { otByStaff[s.email] = { name: s.fullName.split(' ')[0], hrs: 0 }; });
+            analyticsRecords.forEach(r => {
+                if(otByStaff[r.staff_email] && r.hours_worked > CONTRACTED) {
+                    otByStaff[r.staff_email].hrs += parseFloat(r.hours_worked) - CONTRACTED;
+                }
+            });
+            const sorted = Object.values(otByStaff).filter(s=>s.hrs>0).sort((a,b)=>b.hrs-a.hrs).slice(0,8);
             if(!sorted.length) {
                 document.getElementById('overtimeChartWrapper').innerHTML =
                     '<div style="text-align:center;padding:48px;color:var(--text-muted);"><i class="fa-solid fa-circle-check" style="font-size:36px;color:#10b981;display:block;margin-bottom:10px;"></i>No overtime recorded in the last 30 days!</div>';
                 return;
             }
             const ctx = document.getElementById('chartOvertime').getContext('2d');
-            const avgOTHrs = (sorted.reduce((s,x)=>s+x.mins,0)/30*7/60).toFixed(1);
+            const totalOTHrs = sorted.reduce((s,x)=>s+x.hrs,0);
+            const avgOTHrs = (totalOTHrs/Math.max(sorted.length,1)).toFixed(1);
             analyticsCharts['overtime'] = new Chart(ctx, {
                 type:'bar',
                 data:{labels:sorted.map(s=>s.name),datasets:[{label:'Overtime (hrs)',
-                    data:sorted.map(s=>(s.mins/60).toFixed(1)),
+                    data:sorted.map(s=>s.hrs.toFixed(1)),
                     backgroundColor:sorted.map((_,i)=>i===0?'#ef444488':'#fb923c55'),
                     borderColor:sorted.map((_,i)=>i===0?'#ef4444':'#f97316'),
                     borderWidth:2,borderRadius:6}]},
-                options:{indexAxis:'y',responsive:true,scales:{x:{beginAtZero:true,ticks:{callback:v=>v+'h'}}},plugins:{legend:{display:false}}}
+                options:{indexAxis:'y',responsive:true,
+                    scales:{x:{beginAtZero:true,ticks:{callback:v=>v+'h'}}},
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x} hrs overtime`}}
+                    }
+                }
             });
             document.getElementById('insightOvertime').innerHTML =
-                `⚠️ <strong>${sorted[0].name}</strong> leads overtime with <strong>${(sorted[0].mins/60).toFixed(1)} hrs</strong>. Team avg: <strong>${avgOTHrs} hrs OT/week</strong>. ${parseFloat(avgOTHrs)>3?'⚠️ Consider additional headcount.':'✅ Within healthy range.'}`;
+                `⚠️ <strong>${sorted[0].name}</strong> leads overtime with <strong>${sorted[0].hrs.toFixed(1)} hrs</strong>. Avg per OT staff: <strong>${avgOTHrs} hrs</strong>. ${parseFloat(avgOTHrs)>3?'⚠️ Consider additional headcount.':'✅ Within healthy range.'}`;
         }
 
         function renderAbsenceLeaderboard(startDate) {
