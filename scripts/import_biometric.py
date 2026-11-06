@@ -128,5 +128,17 @@ def process_file(filename):
         print(f"No valid records found in {filename}.")
 
 if __name__ == '__main__':
-    process_file('9 June.xls')
-    process_file('10 June.xls')
+    july_files = [
+        '20 Jul 2026.xls',
+        '21 Jul 2026.xls',
+        '22 Jul 2026.xls',
+        '23 Jul 2026.xls',
+        '24 Jul 2026.xls',
+        '27 Jul 2026.xls',
+        '28 Jul 2026.xls',
+        '29 Jul 2026.xls',
+        '30 Jul 2026.xls',
+        '31 Jul 2026.xls',
+    ]
+    for f in july_files:
+        process_file(f'data/{f}')
